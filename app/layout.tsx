@@ -18,7 +18,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "SEMANCOM | Chat Semantico Comercial",
+  title: "Prospector | Chat Semantico Comercial",
   description: "Chat Semantico Comercial",
 };
 
