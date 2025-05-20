@@ -18,7 +18,6 @@ import {
 } from "../ui/tooltip";
 import { cn } from "@/lib/utils";
 import { useMediaQueryCustom } from "@/hook/mediaQueryHook";
-import Image from "next/image";
 import LogoComponent from "../LogoComponent";
 
 export function Sidebar() {

@@ -25,14 +25,18 @@ const FormSend = () => {
     defaultValues: defaultValues,
   });
 
-  const onSubmit = form.handleSubmit((values) =>
+  const onSubmit = form.handleSubmit((values: MessageSchemaType) =>
     startTransition(async () => {
       try {
         await sendMessage(values);
         toast.success("Mensaje enviado correctamente");
         form.reset();
-      } catch (err: any) {
-        toast.error(err.message);
+      } catch (err: Error | unknown) {
+        if (err instanceof Error) {
+          toast.error(err.message);
+        } else {
+          toast.error("Error al enviar el mensaje");
+        }
       }
     })
   );
