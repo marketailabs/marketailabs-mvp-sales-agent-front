@@ -67,7 +67,7 @@ export function Sidebar() {
     >
       <div className="w-full h-16">
         <div className="h-full w-full flex justify-between md:justify-start items-center">
-          <LogoComponent className="md:hidden w-[140px]" />
+          <LogoComponent className="md:hidden w-[250px]" />
 
           <TooltipProvider>
             <Tooltip>
