@@ -25,7 +25,7 @@ const FormSend = () => {
     defaultValues: defaultValues,
   });
 
-  const onSubmit = form.handleSubmit((values: MessageSchemaType) =>
+  const onSubmit = form.handleSubmit((values) =>
     startTransition(async () => {
       try {
         await sendMessage(values);

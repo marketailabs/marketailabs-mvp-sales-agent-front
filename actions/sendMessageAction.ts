@@ -3,6 +3,8 @@
 import { messageSchema, type MessageSchemaType } from "@/lib/zodSchema";
 
 export async function sendMessage(data: MessageSchemaType) {
+  console.log("Datos recibidos del formulario:", data);
+
   // 1) Validar con Zod
   const result = messageSchema.safeParse(data);
   if (!result.success) {
