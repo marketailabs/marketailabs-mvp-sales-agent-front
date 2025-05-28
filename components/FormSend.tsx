@@ -68,20 +68,20 @@ const FormSend = () => {
               <FormLabel className="mb-1 text-base font-medium flex justify-between items-center font-inter">
                 <span className="text-primary">Tu consulta</span>
                 <span className="flex items-center gap-1 border border-black rounded-full px-2 py-1 text-sm text-primary shadow-lg bg-background">
-                  {countWords(field.value) >= 300 ? (
+                  {countWords(field.value) >= 200 ? (
                     <>
                       <Check className="size-4 text-green-500" />
-                      300/300
+                      200/200
                     </>
                   ) : (
-                    `${countWords(field.value)}/300`
+                    `${countWords(field.value)}/200`
                   )}
                 </span>
               </FormLabel>
               <FormControl>
                 <Textarea
                   className="resize-none h-52 text-sm shadow-[0px_8px_10px_2px_rgba(0,0,0,0.25)]"
-                  placeholder="Escribe tu consulta aquí (300 palabras mínimo)..."
+                  placeholder="Escribe tu consulta aquí (200 palabras mínimo)..."
                   {...field}
                 />
               </FormControl>

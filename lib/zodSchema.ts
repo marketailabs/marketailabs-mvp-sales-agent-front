@@ -10,11 +10,14 @@ export const messageSchema = z.object({
     .min(1, "Por favor, ingresa tu consulta")
     .refine(
       (value) => {
-        const wordCount = value.trim().split(/\s+/).filter(word => word.length > 0).length;
-        return wordCount >= 300 && wordCount <= 5000;
+        const wordCount = value
+          .trim()
+          .split(/\s+/)
+          .filter((word) => word.length > 0).length;
+        return wordCount >= 200 && wordCount <= 1500;
       },
       {
-        message: "El mensaje debe tener entre 300 y 5000 palabras"
+        message: "El mensaje debe tener entre 200 y 1500 palabras",
       }
     ),
 });
