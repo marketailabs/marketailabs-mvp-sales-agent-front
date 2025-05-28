@@ -6,10 +6,10 @@ async function runChat(texto: string, retries = 2): Promise<string> {
   });
 
   const config = {
-    systemInstruction: `Sos un asistente que normaliza textos escritos por usuarios. 
-Tu tarea es devolver el mismo texto pero sin errores ortográficos, gramaticales ni abreviaciones. 
-NO agregues explicaciones ni comentarios, solo devolvé el texto corregido. 
-Si el texto ya está correctamente escrito, devolvelo sin cambios.`,
+    systemInstruction: `Eres un asistente que revisa textos escritos por usuarios y realiza correcciones ortotipográficas.
+      Tu tarea es devolver el mismo texto revisado sin modificar la idea original.
+      NO agregues explicaciones ni comentarios, solo devuelve el texto corregido.
+      Si el texto ya está correctamente escrito, no realices cambios.`,
     responseMimeType: "text/plain",
   };
 

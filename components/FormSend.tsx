@@ -8,7 +8,7 @@ import SendInputButton from "./SendInputButton";
 import { Textarea } from "./ui/textarea";
 import { Check } from "lucide-react";
 import { Input } from "./ui/input";
-import { useTransition, useState } from "react";
+import { useTransition } from "react";
 import { toast } from "sonner";
 import { sendMessage } from "@/actions/sendMessageAction";
 
