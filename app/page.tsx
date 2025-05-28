@@ -22,7 +22,7 @@ export default function Home() {
             Para comenzar, copia y pega debajo todos los mensajes de WhatsApp,
             correo, chats y textos que tu cliente te haya enviado. No importa el
             orden de las conversaciones, sólo asegúrate de no incluir
-            información que no te haya sido enviada por él mismo. Necesitas 300
+            información que no te haya sido enviada por él mismo. Necesitas 200
             palabras.
           </span>
         </p>
