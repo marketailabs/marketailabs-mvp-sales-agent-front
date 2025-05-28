@@ -55,7 +55,7 @@ const SendInputButton = ({
                 aria-disabled={isSubmitting}
               >
                 {isSubmitting ? (
-                  <Loader2 className="h-5 w-5 animate-spin" />
+                  <Loader2 className="size-5 animate-spin" />
                 ) : (
                   <SendHorizonal className="size-5" />
                 )}
@@ -67,8 +67,6 @@ const SendInputButton = ({
           </Tooltip>
         </TooltipProvider>
       </div>
-
-      {/* <p className="text-red-500">{errors && errors.join(", ")}</p> */}
     </div>
   );
 };

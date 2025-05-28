@@ -8,7 +8,7 @@ import SendInputButton from "./SendInputButton";
 import { Textarea } from "./ui/textarea";
 import { Check } from "lucide-react";
 import { Input } from "./ui/input";
-import { useTransition } from "react";
+import { useTransition, useState } from "react";
 import { toast } from "sonner";
 import { sendMessage } from "@/actions/sendMessageAction";
 
@@ -25,6 +25,7 @@ const FormSend = () => {
     defaultValues: defaultValues,
   });
 
+  // Envio del formulario a la API
   const onSubmit = form.handleSubmit((values) =>
     startTransition(async () => {
       try {
@@ -41,6 +42,7 @@ const FormSend = () => {
     })
   );
 
+  // Validaciones del formulario
   const { errors } = form.formState;
 
   const resetForm = () => {
@@ -49,6 +51,7 @@ const FormSend = () => {
     });
   };
 
+  // Conteo de palabras
   const countWords = (text: string) => {
     const words = text.trim().split(/\s+/);
     return words.filter((word) => word.length > 0).length;

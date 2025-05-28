@@ -19,11 +19,13 @@ import {
 import { cn } from "@/lib/utils";
 import { useMediaQueryCustom } from "@/hook/mediaQueryHook";
 import LogoComponent from "../LogoComponent";
+import { useRouter } from "next/navigation";
 
 export function Sidebar() {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const isMobile = useMediaQueryCustom("(max-width: 768px)");
+  const router = useRouter();
 
   useEffect(() => {
     if (!isMobile) {
@@ -46,17 +48,6 @@ export function Sidebar() {
       setIsSidebarOpen(false);
     }
   };
-
-  const sidebarIcons = [
-    {
-      icon: Wallet,
-      label: "Recargar Creditos",
-    },
-    {
-      icon: Pencil,
-      label: "Nueva Nota",
-    },
-  ];
 
   return (
     <header
@@ -96,7 +87,7 @@ export function Sidebar() {
           </SheetHeader>
 
           <nav className="flex-1 px-4 flex flex-col">
-            <Button>
+            <Button onClick={() => router.refresh()}>
               <span>Nueva Nota</span>
               <Pencil className="size-4" />
             </Button>
@@ -119,26 +110,45 @@ export function Sidebar() {
       </Sheet>
 
       <nav className="hidden md:flex flex-1 h-full flex-col justify-end items-start my-4 gap-2">
-        {sidebarIcons.map((icon) => (
-          <TooltipProvider key={icon.label}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  className="rounded-full"
-                  size={isSidebarOpen ? "default" : "icon"}
-                >
-                  <icon.icon className="size-5" />
-                  <span className={cn(isSidebarOpen ? "" : "sr-only")}>
-                    {icon.label}
-                  </span>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="right">
-                <p>{icon.label}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        ))}
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                onClick={() => router.refresh()}
+                className="rounded-full"
+                size={isSidebarOpen ? "default" : "icon"}
+              >
+                <Pencil className="size-5" />
+                <span className={cn(isSidebarOpen ? "" : "sr-only")}>
+                  Nueva Nota
+                </span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="right">
+              <p>Nueva Nota</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                className="rounded-full"
+                size={isSidebarOpen ? "default" : "icon"}
+              >
+                <Wallet className="size-5" />
+                <span className={cn(isSidebarOpen ? "" : "sr-only")}>
+                  Recargar Creditos
+                </span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="right">
+              <p>Recargar Creditos</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+
         <ThemeButton
           rounded={"rounded-full"}
           align="end"
