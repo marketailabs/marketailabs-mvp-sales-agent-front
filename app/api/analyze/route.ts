@@ -8,7 +8,7 @@ export async function POST(req: Request) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         texto: body.texto,
-        // email: result.data.email
+        email: body.email,
       }),
     });
 

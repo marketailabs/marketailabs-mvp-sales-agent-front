@@ -1,11 +1,12 @@
 import { Work_Sans, Inter } from "next/font/google";
-import { ThemeProvider } from "@/components/ui/theme-provider";
-import { Toaster } from "@/components/ui/sonner";
-import { Sidebar } from "@/components/layout/Sidebar";
 
 import type { Metadata } from "next";
 
 import "./globals.css";
+import { draftMode } from "next/headers";
+import { VisualEditing } from "next-sanity";
+import { DisableDraftMode } from "@/components/DisableDraftMode";
+import { ThemeProvider } from "@/components/ui/theme-provider";
 
 const workSans = Work_Sans({
   variable: "--font-work-sans",
@@ -22,7 +23,7 @@ export const metadata: Metadata = {
   description: "Chat Semantico Comercial",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
@@ -30,19 +31,19 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${workSans.variable} ${inter.variable} antialiased`}>
+        {(await draftMode()).isEnabled && (
+          <>
+            <DisableDraftMode />
+            <VisualEditing />
+          </>
+        )}
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
           enableSystem
           disableTransitionOnChange
         >
-          <div className="flex min-h-screen flex-col md:flex-row">
-            <Sidebar />
-
-            {children}
-          </div>
-
-          <Toaster />
+          {children}
         </ThemeProvider>
       </body>
     </html>

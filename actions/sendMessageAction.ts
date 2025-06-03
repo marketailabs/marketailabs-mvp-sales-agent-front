@@ -2,15 +2,13 @@
 
 import { messageSchema, type MessageSchemaType } from "@/lib/zodSchema";
 import runChat from "@/config/gemini";
-
-const baseUrl =
-  process.env.NODE_ENV === "development"
-    ? "http://localhost:3000"
-    : `${process.env.NEXT_PUBLIC_BASE_URL}`;
+import baseUrl from "@/lib/baseUrl";
+import {
+  subtractUserCredit,
+  verifyUserCredits,
+} from "@/sanity/lib/User/UserCredits";
 
 export async function sendMessage(data: MessageSchemaType) {
-  console.log("Datos recibidos del formulario sendMessageAction:", data);
-
   // 1) Validar con Zod
   const result = messageSchema.safeParse(data);
   if (!result.success) {
@@ -19,25 +17,25 @@ export async function sendMessage(data: MessageSchemaType) {
     );
   }
 
-  const { texto } = result.data;
+  // 2) Validar con Sanity que el usuario existe, el token sea correcto y que tenga créditos
+  const { mensaje, email, token } = result.data;
+
+  const user = await verifyUserCredits(email, token);
 
   try {
-    // 2) Normalizar con Gemini
-    const prompt = `${texto}`;
+    // 3) Normalizar con Gemini
+    const prompt = `${mensaje}`;
     const textoNormalizado = await runChat(prompt);
 
-    console.log(
-      "Enviando al backend con texto limpio sendMessageAction:",
-      textoNormalizado
-    );
+    console.log("textoNormalizado", textoNormalizado);
 
-    // 3) Enviar al backend con texto limpio
+    // 4) Enviar al backend con texto limpio
     const res = await fetch(`${baseUrl}/api/analyze`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         texto: textoNormalizado,
-        // email: result.data.email
+        email: email.trim().toLowerCase(),
       }),
     });
 
@@ -48,7 +46,13 @@ export async function sendMessage(data: MessageSchemaType) {
       );
     }
 
-    return await res.json();
+    // 5) Restar crédito solo si todo salió bien
+    const updatedUser = await subtractUserCredit(user._id);
+
+    return {
+      ...(await res.json()),
+      restCredit: updatedUser.credits,
+    };
   } catch (error) {
     console.error("Error al enviar el mensaje sendMessageAction:", error);
     throw new Error(

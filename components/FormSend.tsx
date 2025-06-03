@@ -11,13 +11,21 @@ import { Input } from "./ui/input";
 import { useTransition } from "react";
 import { toast } from "sonner";
 import { sendMessage } from "@/actions/sendMessageAction";
+import { GetFormsQueryResult } from "@/sanity.types";
 
-const FormSend = () => {
+type FormSendProps = {
+  formSanity: GetFormsQueryResult;
+};
+
+const FormSend = ({ formSanity }: FormSendProps) => {
+  const { fields } = formSanity[0];
+
   const [isPending, startTransition] = useTransition();
 
   const defaultValues: MessageSchemaType = {
     email: "",
-    texto: "",
+    mensaje: "",
+    token: "",
   };
 
   const form = useForm<MessageSchemaType>({
@@ -29,8 +37,11 @@ const FormSend = () => {
   const onSubmit = form.handleSubmit((values) =>
     startTransition(async () => {
       try {
-        await sendMessage(values);
-        toast.success("Mensaje enviado correctamente");
+        const result = await sendMessage(values);
+
+        toast.success(`Mensaje enviado correctamente! 🎉`, {
+          description: `${result.restCredit} créditos restantes`,
+        });
         form.reset();
       } catch (err: Error | unknown) {
         if (err instanceof Error) {
@@ -58,43 +69,45 @@ const FormSend = () => {
   };
 
   return (
-    <Form {...form}>
-      <form onSubmit={onSubmit} className="space-y-12">
-        <FormField
-          name="texto"
-          control={form.control}
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="mb-1 text-base font-medium flex justify-between items-center font-inter">
-                <span className="text-primary">Tu consulta</span>
-                <span className="flex items-center gap-1 border border-black rounded-full px-2 py-1 text-sm text-primary shadow-lg bg-background">
-                  {countWords(field.value) >= 200 ? (
-                    <>
-                      <Check className="size-4 text-green-500" />
-                      200/200
-                    </>
-                  ) : (
-                    `${countWords(field.value)}/200`
-                  )}
-                </span>
-              </FormLabel>
-              <FormControl>
-                <Textarea
-                  className="resize-none h-52 text-sm shadow-[0px_8px_10px_2px_rgba(0,0,0,0.25)]"
-                  placeholder="Escribe tu consulta aquí (200 palabras mínimo)..."
-                  {...field}
-                />
-              </FormControl>
-              {errors.texto && (
-                <p className="text-red-500 text-sm mt-4">
-                  {errors.texto.message}
-                </p>
-              )}
-            </FormItem>
-          )}
-        />
+    <div className="flex flex-col p-8 mx-auto max-w-2xl lg:max-w-4xl">
+      <Form {...form}>
+        <form onSubmit={onSubmit} className="space-y-4">
+          <FormField
+            name="mensaje"
+            control={form.control}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="mb-1 text-base font-medium flex justify-between items-center font-inter">
+                  <span className="text-primary">{fields![0].titulo}</span>
+                  <span className="flex items-center gap-1 border border-black rounded-full px-2 py-1 text-sm text-primary shadow-lg bg-background">
+                    {countWords(field.value) >=
+                    Number(fields![0].validacion) ? (
+                      <>
+                        <Check className="size-4 text-green-500" />
+                        {fields![0].validacion}/{fields![0].validacion}
+                      </>
+                    ) : (
+                      `${countWords(field.value)}/${fields![0].validacion}`
+                    )}
+                  </span>
+                </FormLabel>
+                <FormControl>
+                  <Textarea
+                    className="resize-none h-52 text-sm shadow-[0px_4px_8px_1px_rgba(0,0,0,0.15)] 
+      dark:shadow-[0px_8px_10px_2px_rgba(0,0,0,0.25)] bg-background"
+                    placeholder={fields![0].placeholder!}
+                    {...field}
+                  />
+                </FormControl>
+                {errors.mensaje && (
+                  <p className="text-red-500 text-sm mt-2">
+                    {errors.mensaje.message}
+                  </p>
+                )}
+              </FormItem>
+            )}
+          />
 
-        <SendInputButton isSubmitting={isPending} resetForm={resetForm}>
           <FormField
             name="email"
             control={form.control}
@@ -104,14 +117,15 @@ const FormSend = () => {
                   htmlFor="email"
                   className="mb-1 text-base font-medium font-inter"
                 >
-                  <span className="text-primary">Correo Electronico</span>
+                  <span className="text-primary">{fields![1].titulo}</span>
                 </FormLabel>
                 <FormControl>
                   <Input
                     type="text"
                     id="email"
-                    placeholder="correo@ejemplo.com"
-                    className="w-full pr-24 rounded-full h-12 shadow-[0px_8px_10px_2px_rgba(0,0,0,0.25)] bg-background"
+                    placeholder={fields![1].placeholder!}
+                    className="w-full rounded-full h-12 shadow-[0px_4px_8px_1px_rgba(0,0,0,0.15)] 
+      dark:shadow-[0px_8px_10px_2px_rgba(0,0,0,0.25)] bg-background"
                     {...field}
                   />
                 </FormControl>
@@ -123,9 +137,41 @@ const FormSend = () => {
               </FormItem>
             )}
           />
-        </SendInputButton>
-      </form>
-    </Form>
+
+          <SendInputButton isSubmitting={isPending} resetForm={resetForm}>
+            <FormField
+              name="token"
+              control={form.control}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel
+                    htmlFor="token"
+                    className="mb-1 text-base font-medium font-inter"
+                  >
+                    <span className="text-primary">{fields![2].titulo}</span>
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      type="text"
+                      id="token"
+                      placeholder={fields![2].placeholder!}
+                      className="w-full pr-24 rounded-full h-12 shadow-[0px_4px_8px_1px_rgba(0,0,0,0.15)] 
+      dark:shadow-[0px_8px_10px_2px_rgba(0,0,0,0.25)] bg-background"
+                      {...field}
+                    />
+                  </FormControl>
+                  {errors.token && (
+                    <p className="text-red-500 text-sm mt-4">
+                      {errors.token.message}
+                    </p>
+                  )}
+                </FormItem>
+              )}
+            />
+          </SendInputButton>
+        </form>
+      </Form>
+    </div>
   );
 };
 

@@ -7,7 +7,7 @@ async function runChat(texto: string, retries = 2): Promise<string> {
 
   const config = {
     systemInstruction: `Eres un asistente que revisa textos escritos por usuarios y realiza correcciones ortotipográficas.
-      Tu tarea es devolver el mismo texto revisado sin modificar la idea original.
+      Tu tarea es devolver el mismo texto revisado sin modificar la idea original pero sin errores ortográficos, gramaticales ni abreviaciones.
       NO agregues explicaciones ni comentarios, solo devuelve el texto corregido.
       Si el texto ya está correctamente escrito, no realices cambios.`,
     responseMimeType: "text/plain",
