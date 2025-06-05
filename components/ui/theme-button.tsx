@@ -42,7 +42,7 @@ export function ThemeButton({
                 <span
                   className={cn(isMobile || isSidebarOpen ? "" : "sr-only")}
                 >
-                  Toggle theme
+                  Cambiar tema
                 </span>
               </div>
               <div className="flex items-center gap-2">
@@ -55,7 +55,7 @@ export function ThemeButton({
               <Sun className="size-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
               <Moon className="absolute size-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
               <span className={cn(isSidebarOpen ? "" : "sr-only")}>
-                Toggle theme
+                Cambiar tema
               </span>
             </div>
           )}
@@ -63,13 +63,13 @@ export function ThemeButton({
       </DropdownMenuTrigger>
       <DropdownMenuContent side={side} align={align}>
         <DropdownMenuItem onClick={() => setTheme("light")}>
-          Light
+          Claro
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => setTheme("dark")}>
-          Dark
+          Oscuro
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => setTheme("system")}>
-          System
+          Sistema
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
