@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { messageSchema, MessageSchemaType } from "../lib/zodSchema";
+import { createMessageSchema, MessageSchemaType } from "../lib/zodSchema";
 import { Form, FormField, FormItem, FormLabel, FormControl } from "./ui/form";
 import SendInputButton from "./SendInputButton";
 import { Textarea } from "./ui/textarea";
@@ -22,6 +22,18 @@ export const FormSend = ({ formSanity, formOption }: FormSendProps) => {
   const { fields } = formSanity[formOption ?? 0];
 
   const [isPending, startTransition] = useTransition();
+
+  // Obtener el campo de texto (textarea) y su validación
+  const textareaField = fields?.find((field) => field.tipo === "textarea");
+  const minWords = textareaField?.validacion
+    ? Number(textareaField.validacion)
+    : 150;
+
+  // Crear el esquema con la validación dinámica
+  const messageSchema = createMessageSchema({
+    minWords,
+    maxWords: 1500,
+  });
 
   const defaultValues: MessageSchemaType = {
     email: "",

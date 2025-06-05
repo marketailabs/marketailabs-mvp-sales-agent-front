@@ -6,7 +6,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { AppWindowMac, Wallet, Bot, Brain } from "lucide-react";
+import { AppWindowMac, Bot, Brain } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import { ThemeButton } from "../ui/theme-button";
@@ -101,10 +101,10 @@ export const Sidebar = () => {
             </Button>
 
             <div className="flex-1 flex flex-col justify-end items-end py-4 gap-2">
-              <Button className="w-max">
+              {/* <Button className="w-max">
                 <span>Recargar Creditos</span>
                 <Wallet className="size-4" />
-              </Button>
+              </Button> */}
 
               <ThemeButton
                 isMobile={isMobile}
@@ -162,7 +162,7 @@ export const Sidebar = () => {
           </Tooltip>
         </TooltipProvider>
 
-        <TooltipProvider>
+        {/* <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
@@ -179,7 +179,7 @@ export const Sidebar = () => {
               <p>Recargar Creditos</p>
             </TooltipContent>
           </Tooltip>
-        </TooltipProvider>
+        </TooltipProvider> */}
 
         <ThemeButton
           rounded={"rounded-full"}
