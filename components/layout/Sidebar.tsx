@@ -6,7 +6,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { Pencil, AppWindowMac, Wallet } from "lucide-react";
+import { AppWindowMac, Wallet, Bot, Brain } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import { ThemeButton } from "../ui/theme-button";
@@ -18,14 +18,13 @@ import {
 } from "../ui/tooltip";
 import { cn } from "@/lib/utils";
 import { useMediaQueryCustom } from "@/hook/mediaQueryHook";
-import LogoComponent from "../LogoComponent";
-import { useRouter } from "next/navigation";
+import { LogoComponent } from "../LogoComponent";
+import Link from "next/link";
 
-export function Sidebar() {
+export const Sidebar = () => {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const isMobile = useMediaQueryCustom("(max-width: 768px)");
-  const router = useRouter();
 
   useEffect(() => {
     if (!isMobile) {
@@ -53,7 +52,7 @@ export function Sidebar() {
     <header
       className={cn(
         "flex flex-col items-center md:items-start justify-between px-4 transition-all duration-200 ease-in-out bg-secondary",
-        isSidebarOpen ? "w-52" : "w-full md:w-17"
+        isSidebarOpen ? "w-56" : "w-full md:w-17"
       )}
     >
       <div className="w-full h-16">
@@ -86,10 +85,19 @@ export function Sidebar() {
             <SheetTitle>Menu</SheetTitle>
           </SheetHeader>
 
-          <nav className="flex-1 px-4 flex flex-col">
-            <Button onClick={() => router.refresh()}>
-              <span>Nueva Nota</span>
-              <Pencil className="size-4" />
+          <nav className="flex-1 px-4 gap-2 flex flex-col">
+            <Button asChild>
+              <Link href="/">
+                <span>Prospector</span>
+                <Brain className="size-4" />
+              </Link>
+            </Button>
+
+            <Button asChild>
+              <Link href="/asistenteia">
+                <span>Prospector Assistant</span>
+                <Bot className="size-4" />
+              </Link>
             </Button>
 
             <div className="flex-1 flex flex-col justify-end items-end py-4 gap-2">
@@ -114,18 +122,42 @@ export function Sidebar() {
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                onClick={() => router.refresh()}
+                asChild
                 className="rounded-full"
                 size={isSidebarOpen ? "default" : "icon"}
               >
-                <Pencil className="size-5" />
-                <span className={cn(isSidebarOpen ? "" : "sr-only")}>
-                  Nueva Nota
-                </span>
+                <Link href="/">
+                  <Brain className="size-5" />
+                  <span className={cn(isSidebarOpen ? "" : "sr-only")}>
+                    Prospector
+                  </span>
+                </Link>
               </Button>
             </TooltipTrigger>
             <TooltipContent side="right">
-              <p>Nueva Nota</p>
+              <p>Prospector</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                asChild
+                className="rounded-full"
+                size={isSidebarOpen ? "default" : "icon"}
+              >
+                <Link href="/asistenteia">
+                  <Bot className="size-5" />
+                  <span className={cn(isSidebarOpen ? "" : "sr-only")}>
+                    Prospector Assistant
+                  </span>
+                </Link>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="right">
+              <p>Prospector Assistant</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
@@ -158,4 +190,4 @@ export function Sidebar() {
       </nav>
     </header>
   );
-}
+};

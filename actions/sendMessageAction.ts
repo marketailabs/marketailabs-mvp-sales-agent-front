@@ -8,7 +8,10 @@ import {
   verifyUserCredits,
 } from "@/sanity/lib/User/UserCredits";
 
-export async function sendMessage(data: MessageSchemaType) {
+export async function sendMessage(
+  data: MessageSchemaType,
+  configOption: number
+) {
   // 1) Validar con Zod
   const result = messageSchema.safeParse(data);
   if (!result.success) {
@@ -23,18 +26,18 @@ export async function sendMessage(data: MessageSchemaType) {
   const user = await verifyUserCredits(email, token);
 
   try {
-    // 3) Normalizar con Gemini
+    // 3) Normalizar o Realizar una redacción de cliente con Gemini
     const prompt = `${mensaje}`;
-    const textoNormalizado = await runChat(prompt);
+    const textoEntregado = await runChat(prompt, 2, configOption);
 
-    console.log("textoNormalizado", textoNormalizado);
+    console.log("textoEntregado", textoEntregado);
 
     // 4) Enviar al backend con texto limpio
     const res = await fetch(`${baseUrl}/api/analyze`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        texto: textoNormalizado,
+        texto: textoEntregado,
         email: email.trim().toLowerCase(),
       }),
     });

@@ -19,7 +19,10 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Prospector | Chat Semantico Comercial",
+  title: {
+    default: "Chat Semantico Comercial",
+    template: "%s | Chat Semantico Comercial",
+  },
   description: "Chat Semantico Comercial",
 };
 

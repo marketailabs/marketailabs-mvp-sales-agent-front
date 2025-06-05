@@ -26,9 +26,9 @@ export type Input = {
   validacion?: string;
 };
 
-export type Home = {
+export type Intro = {
   _id: string;
-  _type: "home";
+  _type: "intro";
   _createdAt: string;
   _updatedAt: string;
   _rev: string;
@@ -183,7 +183,7 @@ export type SanityAssetSourceData = {
   url?: string;
 };
 
-export type AllSanitySchemaTypes = Input | Home | Form | User | SanityImagePaletteSwatch | SanityImagePalette | SanityImageDimensions | SanityImageHotspot | SanityImageCrop | SanityFileAsset | SanityImageAsset | SanityImageMetadata | Geopoint | Slug | SanityAssetSourceData;
+export type AllSanitySchemaTypes = Input | Intro | Form | User | SanityImagePaletteSwatch | SanityImagePalette | SanityImageDimensions | SanityImageHotspot | SanityImageCrop | SanityFileAsset | SanityImageAsset | SanityImageMetadata | Geopoint | Slug | SanityAssetSourceData;
 export declare const internalGroqTypeReferenceTo: unique symbol;
 // Source: ./sanity/lib/Form/getForm.ts
 // Variable: getFormsQuery
@@ -201,6 +201,16 @@ export type GetFormsQueryResult = Array<{
   }> | null;
 }>;
 
+// Source: ./sanity/lib/Intro/getIntro.ts
+// Variable: getIntroQuery
+// Query: *[_type == "intro"] | order(_createdAt asc){      _id,      title,      parrafo1,      parrafo2    }
+export type GetIntroQueryResult = Array<{
+  _id: string;
+  title: string | null;
+  parrafo1: string | null;
+  parrafo2: string | null;
+}>;
+
 // Source: ./sanity/lib/User/getUserByEmail.ts
 // Variable: getUserByEmailQuery
 // Query: *[_type == "user" && email == $email][0]
@@ -216,22 +226,12 @@ export type GetUserByEmailQueryResult = {
   credits?: number;
 } | null;
 
-// Source: ./sanity/lib/home/getHome.ts
-// Variable: getHomeQuery
-// Query: *[_type == "home"][0]{    _id,    title,    parrafo1,    parrafo2  }
-export type GetHomeQueryResult = {
-  _id: string;
-  title: string | null;
-  parrafo1: string | null;
-  parrafo2: string | null;
-} | null;
-
 // Query TypeMap
 import "@sanity/client";
 declare module "@sanity/client" {
   interface SanityQueries {
     "*[_type == \"form\"]{\n  _id,\n  name,\n  \"fields\": fields[]->{\n    _id,\n    name,\n    titulo,\n    placeholder,\n    tipo,\n    validacion\n    // Agrega aqu\xED cualquier otro campo que tengas en tu inputType\n  }\n}": GetFormsQueryResult;
+    "*[_type == \"intro\"] | order(_createdAt asc){\n      _id,\n      title,\n      parrafo1,\n      parrafo2\n    }": GetIntroQueryResult;
     "*[_type == \"user\" && email == $email][0]": GetUserByEmailQueryResult;
-    "*[_type == \"home\"][0]{\n    _id,\n    title,\n    parrafo1,\n    parrafo2\n  }": GetHomeQueryResult;
   }
 }

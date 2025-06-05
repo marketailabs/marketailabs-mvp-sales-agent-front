@@ -86,7 +86,7 @@
     }
   },
   {
-    "name": "home",
+    "name": "intro",
     "type": "document",
     "attributes": {
       "_id": {
@@ -99,7 +99,7 @@
         "type": "objectAttribute",
         "value": {
           "type": "string",
-          "value": "home"
+          "value": "intro"
         }
       },
       "_createdAt": {

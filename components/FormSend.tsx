@@ -15,10 +15,11 @@ import { GetFormsQueryResult } from "@/sanity.types";
 
 type FormSendProps = {
   formSanity: GetFormsQueryResult;
+  formOption?: number;
 };
 
-const FormSend = ({ formSanity }: FormSendProps) => {
-  const { fields } = formSanity[0];
+export const FormSend = ({ formSanity, formOption }: FormSendProps) => {
+  const { fields } = formSanity[formOption ?? 0];
 
   const [isPending, startTransition] = useTransition();
 
@@ -37,7 +38,13 @@ const FormSend = ({ formSanity }: FormSendProps) => {
   const onSubmit = form.handleSubmit((values) =>
     startTransition(async () => {
       try {
-        const result = await sendMessage(values);
+        let result;
+
+        if (formOption === 0) {
+          result = await sendMessage(values, 0);
+        } else {
+          result = await sendMessage(values, 1);
+        }
 
         toast.success(`Mensaje enviado correctamente! 🎉`, {
           description: `${result.restCredit} créditos restantes`,
@@ -174,5 +181,3 @@ const FormSend = ({ formSanity }: FormSendProps) => {
     </div>
   );
 };
-
-export default FormSend;

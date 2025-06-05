@@ -7,14 +7,9 @@ export const structure: StructureResolver = (S) =>
     .items([
       // Home Section
       S.listItem()
-        .title("Inicio")
+        .title("Intro")
         .icon(Home)
-        .child(
-          S.document()
-            .schemaType("home")
-            .documentId("home")
-            .title("Editar Página de Inicio")
-        ),
+        .child(S.documentTypeList("intro").title("Intro")),
 
       S.divider(),
 
