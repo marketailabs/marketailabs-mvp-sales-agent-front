@@ -98,7 +98,7 @@ export const FormSend = ({ formSanity, formOption }: FormSendProps) => {
               <FormItem>
                 <FormLabel className="mb-1 text-base font-medium flex justify-between items-center font-inter">
                   <span className="text-primary">{fields![0].titulo}</span>
-                  <span className="flex items-center gap-1 border border-black rounded-full px-2 py-1 text-sm text-primary shadow-lg bg-background">
+                  <span className="flex items-center gap-1 border border-input dark:bg-input/30 rounded-full px-2 py-1 text-sm text-primary shadow-lg bg-background">
                     {countWords(field.value) >=
                     Number(fields![0].validacion) ? (
                       <>

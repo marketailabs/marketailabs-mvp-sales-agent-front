@@ -19,8 +19,8 @@ function Loading() {
       {/* Content Skeleton */}
       <div className="max-w-4xl flex flex-col flex-1 px-8 mx-auto w-full mt-14 lg:mt-18">
         <div className="flex flex-col gap-4">
-          <div className="justify-end w-full hidden lg:flex py-4 absolute top-1 right-4">
-            <Skeleton className="h-16 w-44" />
+          <div className="justify-end w-full hidden lg:flex py-4 absolute top-1 right-5">
+            <Skeleton className="h-8 w-48" />
           </div>
 
           <div className="flex flex-col gap-4 mb-8">
