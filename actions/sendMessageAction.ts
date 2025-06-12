@@ -2,7 +2,6 @@
 
 import { messageSchema, type MessageSchemaType } from "@/lib/zodSchema";
 import runChat from "@/config/gemini";
-import baseUrl from "@/lib/baseUrl";
 import {
   subtractUserCredit,
   verifyUserCredits,
@@ -33,7 +32,7 @@ export async function sendMessage(
     console.log("textoEntregado", textoEntregado);
 
     // 4) Enviar al backend con texto limpio
-    const res = await fetch(`${baseUrl}/api/analyze`, {
+    const analyzeRes = await fetch(`${process.env.API_URL}/analyze`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -42,10 +41,11 @@ export async function sendMessage(
       }),
     });
 
-    if (!res.ok) {
-      const errorData = await res.json().catch(() => ({}));
+    if (!analyzeRes.ok) {
+      const errorData = await analyzeRes.json().catch(() => ({}));
       throw new Error(
-        errorData.message || "Error al procesar la solicitud en el servidor"
+        errorData.message ||
+          `Error en el servicio externo: ${analyzeRes.statusText}`
       );
     }
 
@@ -53,7 +53,7 @@ export async function sendMessage(
     const updatedUser = await subtractUserCredit(user._id);
 
     return {
-      ...(await res.json()),
+      ...(await analyzeRes.json()),
       restCredit: updatedUser.credits,
     };
   } catch (error) {
