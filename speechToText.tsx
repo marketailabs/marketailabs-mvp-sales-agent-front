@@ -13,15 +13,10 @@ import { toast } from "sonner";
 
 type SpeechToTextProps = {
   onText: (text: string) => void;
-  isListening: boolean;
-  setIsListening: (isListening: boolean) => void;
 };
 
-export const SpeechToText = ({
-  onText,
-  isListening,
-  setIsListening,
-}: SpeechToTextProps) => {
+export const SpeechToText = ({ onText }: SpeechToTextProps) => {
+  const [isListening, setIsListening] = useState(false);
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -33,7 +28,7 @@ export const SpeechToText = ({
   const initRecognition = () => {
     const SpeechRecognition =
       typeof window !== "undefined" &&
-      (window.SpeechRecognition || (window as Window).webkitSpeechRecognition);
+      (window.SpeechRecognition || (window as any).webkitSpeechRecognition);
 
     if (!SpeechRecognition) {
       toast.error("Tu navegador no soporta reconocimiento de voz.");
@@ -92,9 +87,8 @@ export const SpeechToText = ({
       stream.getTracks().forEach((track) => track.stop());
       setHasPermission(true);
       return true;
-    } catch (error: Error | unknown) {
+    } catch (error) {
       setHasPermission(false);
-      console.error(error);
       toast.warning(
         "Debes permitir el acceso al micrófono para usar esta función."
       );
@@ -104,6 +98,8 @@ export const SpeechToText = ({
 
   // Toggle del micrófono
   const toggleListening = async () => {
+    const recognition = recognitionRef.current;
+
     // Pedir permisos si no se hizo antes
     if (hasPermission === null) {
       const granted = await requestMicrophonePermission();
@@ -113,10 +109,7 @@ export const SpeechToText = ({
 
     // Esperar a tener instancia válida
     if (!recognitionRef.current) {
-      toast.error("No se pudo inicializar el reconocimiento.", {
-        description:
-          "Por favor, concede permiso al micrófono para usar esta función.",
-      });
+      toast.error("No se pudo inicializar el reconocimiento.");
       return;
     }
 
@@ -135,12 +128,9 @@ export const SpeechToText = ({
         recog.start();
         isRecognitionActive.current = true;
         setIsListening(true);
-      } catch (error: Error | unknown) {
-        console.error(error);
-        toast.error("No se pudo activar el reconocimiento.", {
-          description:
-            "Por favor, concede permiso al micrófono para usar esta función.",
-        });
+      } catch (e) {
+        console.warn("No se pudo iniciar el reconocimiento:", e);
+        toast.error("No se pudo activar el reconocimiento.");
       }
     }
   };

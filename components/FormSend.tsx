@@ -8,11 +8,12 @@ import { SendInputButton } from "./SendInputButton";
 import { Textarea } from "./ui/textarea";
 import { Check } from "lucide-react";
 import { Input } from "./ui/input";
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { sendMessage } from "@/actions/sendMessageAction";
 import { GetFormsQueryResult } from "@/sanity.types";
 import { SpeechToText } from "./speechToText";
+import { cn } from "@/lib/utils";
 
 type FormSendProps = {
   formSanity: GetFormsQueryResult;
@@ -20,6 +21,7 @@ type FormSendProps = {
 };
 
 export const FormSend = ({ formSanity, formOption }: FormSendProps) => {
+  const [isListening, setIsListening] = useState(false);
   const { fields } = formSanity[formOption ?? 0];
 
   const [isPending, startTransition] = useTransition();
@@ -114,8 +116,10 @@ export const FormSend = ({ formSanity, formOption }: FormSendProps) => {
                 <div className="relative">
                   <FormControl>
                     <Textarea
-                      className="resize-none h-52 text-sm shadow-[0px_4px_8px_1px_rgba(0,0,0,0.15)] 
-                    dark:shadow-[0px_8px_10px_2px_rgba(0,0,0,0.25)] bg-background"
+                      className={cn(
+                        "resize-none h-52 text-sm shadow-[0px_4px_8px_1px_rgba(0,0,0,0.15)] dark:shadow-[0px_8px_10px_2px_rgba(0,0,0,0.25)] bg-background",
+                        isListening && "animate-pulse"
+                      )}
                       placeholder={fields![0].placeholder!}
                       {...field}
                     />
@@ -123,10 +127,12 @@ export const FormSend = ({ formSanity, formOption }: FormSendProps) => {
 
                   {formOption === 1 && (
                     <SpeechToText
+                      isListening={isListening}
+                      setIsListening={setIsListening}
                       onText={(spokenText) =>
                         form.setValue(
                           "mensaje",
-                          field.value + " " + spokenText,
+                          `${form.watch("mensaje")} ${spokenText}`,
                           {
                             shouldValidate: true,
                           }
