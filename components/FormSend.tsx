@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { createMessageSchema, MessageSchemaType } from "../lib/zodSchema";
 import { Form, FormField, FormItem, FormLabel, FormControl } from "./ui/form";
-import SendInputButton from "./SendInputButton";
+import { SendInputButton } from "./SendInputButton";
 import { Textarea } from "./ui/textarea";
 import { Check } from "lucide-react";
 import { Input } from "./ui/input";
@@ -12,6 +12,7 @@ import { useTransition } from "react";
 import { toast } from "sonner";
 import { sendMessage } from "@/actions/sendMessageAction";
 import { GetFormsQueryResult } from "@/sanity.types";
+import { SpeechToText } from "./speechToText";
 
 type FormSendProps = {
   formSanity: GetFormsQueryResult;
@@ -110,14 +111,31 @@ export const FormSend = ({ formSanity, formOption }: FormSendProps) => {
                     )}
                   </span>
                 </FormLabel>
-                <FormControl>
-                  <Textarea
-                    className="resize-none h-52 text-sm shadow-[0px_4px_8px_1px_rgba(0,0,0,0.15)] 
-      dark:shadow-[0px_8px_10px_2px_rgba(0,0,0,0.25)] bg-background"
-                    placeholder={fields![0].placeholder!}
-                    {...field}
-                  />
-                </FormControl>
+                <div className="relative">
+                  <FormControl>
+                    <Textarea
+                      className="resize-none h-52 text-sm shadow-[0px_4px_8px_1px_rgba(0,0,0,0.15)] 
+                    dark:shadow-[0px_8px_10px_2px_rgba(0,0,0,0.25)] bg-background"
+                      placeholder={fields![0].placeholder!}
+                      {...field}
+                    />
+                  </FormControl>
+
+                  {formOption === 1 && (
+                    <SpeechToText
+                      onText={(spokenText) =>
+                        form.setValue(
+                          "mensaje",
+                          field.value + " " + spokenText,
+                          {
+                            shouldValidate: true,
+                          }
+                        )
+                      }
+                    />
+                  )}
+                </div>
+
                 {errors.mensaje && (
                   <p className="text-red-500 text-sm mt-2">
                     {errors.mensaje.message}

@@ -21,7 +21,7 @@ export default async function AsistenteIAPage() {
     <div className="flex min-h-screen flex-col md:flex-row">
       <Sidebar />
 
-      <main className="flex-1 relative font-sans">
+      <main className="flex-1 relative font-sans mt-4 md:mt-0 md:ml-17">
         <div className="absolute top-1 right-4 hidden lg:flex flex-col items-end py-4">
           <LogoComponent />
         </div>

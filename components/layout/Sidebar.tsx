@@ -51,7 +51,7 @@ export const Sidebar = () => {
   return (
     <header
       className={cn(
-        "flex flex-col items-center md:items-start justify-between px-4 transition-all duration-200 ease-in-out bg-secondary",
+        "fixed top-0 z-50 flex flex-col items-center md:items-start justify-between px-4 transition-all duration-200 ease-in-out bg-secondary md:h-screen",
         isSidebarOpen ? "w-56" : "w-full md:w-17"
       )}
     >

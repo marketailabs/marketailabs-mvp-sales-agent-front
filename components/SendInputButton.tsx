@@ -8,7 +8,7 @@ import {
   TooltipContent,
 } from "./ui/tooltip";
 
-const SendInputButton = ({
+export const SendInputButton = ({
   resetForm,
   children,
   isSubmitting,
@@ -70,5 +70,3 @@ const SendInputButton = ({
     </div>
   );
 };
-
-export default SendInputButton;
