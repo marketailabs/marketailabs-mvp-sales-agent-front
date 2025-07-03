@@ -20,6 +20,7 @@ import { cn } from "@/lib/utils";
 import { useMediaQueryCustom } from "@/hook/mediaQueryHook";
 import { LogoComponent } from "../LogoComponent";
 import Link from "next/link";
+import ExpressIcon from "../ExpressIcon";
 
 export const Sidebar = () => {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
@@ -80,7 +81,7 @@ export const Sidebar = () => {
       </div>
 
       <Sheet open={isSheetOpen} onOpenChange={closeSheet}>
-        <SheetContent className="w-[260px] ">
+        <SheetContent className="w-[280px] ">
           <SheetHeader className="my-2">
             <SheetTitle>Menu</SheetTitle>
           </SheetHeader>
@@ -89,14 +90,21 @@ export const Sidebar = () => {
             <Button asChild>
               <Link href="/">
                 <span>Prospector</span>
-                <Brain className="size-4" />
+                <Brain className="size-5" />
               </Link>
             </Button>
 
             <Button asChild>
               <Link href="/asistenteia">
                 <span>Prospector Assistant</span>
-                <Bot className="size-4" />
+                <Bot className="size-5" />
+              </Link>
+            </Button>
+
+            <Button asChild>
+              <Link href="/asistente-exp">
+                <span>Prospector Express</span>
+                <ExpressIcon />
               </Link>
             </Button>
 
@@ -158,6 +166,29 @@ export const Sidebar = () => {
             </TooltipTrigger>
             <TooltipContent side="right">
               <p>Prospector Assistant</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                asChild
+                className="rounded-full"
+                size={isSidebarOpen ? "default" : "icon"}
+              >
+                <Link href="/asistente-exp">
+                  <ExpressIcon />
+
+                  <span className={cn(isSidebarOpen ? "" : "sr-only")}>
+                    Prospector Express
+                  </span>
+                </Link>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="right">
+              <p>Prospector Express</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>

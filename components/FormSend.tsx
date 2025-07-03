@@ -30,7 +30,7 @@ export const FormSend = ({ formSanity, formOption }: FormSendProps) => {
   const textareaField = fields?.find((field) => field.tipo === "textarea");
   const minWords = textareaField?.validacion
     ? Number(textareaField.validacion)
-    : 150;
+    : 100;
 
   // Crear el esquema con la validación dinámica
   const messageSchema = createMessageSchema({

@@ -16,7 +16,7 @@ const validateWordCount = (
 export const createMessageSchema = (
   options: { minWords?: number; maxWords?: number } = {}
 ) => {
-  const { minWords = 150, maxWords = 1500 } = options;
+  const { minWords = 100, maxWords = 1500 } = options;
 
   return z.object({
     email: z
