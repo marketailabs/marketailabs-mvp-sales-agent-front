@@ -125,7 +125,7 @@ export const FormSend = ({ formSanity, formOption }: FormSendProps) => {
                     />
                   </FormControl>
 
-                  {formOption === 1 && (
+                  {formOption! >= 1 && (
                     <SpeechToText
                       isListening={isListening}
                       setIsListening={setIsListening}
