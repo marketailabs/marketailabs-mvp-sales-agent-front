@@ -12,7 +12,7 @@ import { useSession } from "next-auth/react";
 import { useGlobalContext } from "@/provider/GlobalContext";
 import { PaymentsPlan } from "@/types/globalContextTypes";
 import { MensualPayment } from "../MensualPayment";
-import { CreditPayment } from "../CreditPayment";
+// import { CreditPayment } from "../CreditPayment";
 
 export const PaymentDialog = () => {
   const { data: session } = useSession();
@@ -27,9 +27,9 @@ export const PaymentDialog = () => {
   );
 
   // Filtrar los planes de pago de un solo pago (unico pago)
-  const unicoPagoPayment = paymentsPlan.filter(
-    (payment) => payment.typeOfPlan === "un solo pago"
-  );
+  // const unicoPagoPayment = paymentsPlan.filter(
+  //   (payment) => payment.typeOfPlan === "un solo pago"
+  // );
 
   return (
     <Dialog open={openPaymentModal} onOpenChange={setOpenPaymentModal}>
@@ -45,14 +45,14 @@ export const PaymentDialog = () => {
 
         <Tabs defaultValue="paquetes" className="w-full">
           <TabsList className="w-full mb-4">
-            {unicoPagoPayment.length > 0 && (
+            {/* {unicoPagoPayment.length > 0 && (
               <TabsTrigger value="paquetes">Paquetes</TabsTrigger>
-            )}
+            )} */}
             <TabsTrigger value="suscripciones">Planes</TabsTrigger>
           </TabsList>
 
           {/* Paquetes */}
-          {unicoPagoPayment.length > 0 && (
+          {/* {unicoPagoPayment.length > 0 && (
             <TabsContent value="paquetes" className="grid lg:grid-cols-3 gap-4">
               {unicoPagoPayment?.map((payment: PaymentsPlan) => (
                 <CreditPayment
@@ -62,7 +62,7 @@ export const PaymentDialog = () => {
                 />
               ))}
             </TabsContent>
-          )}
+          )} */}
 
           {/* Planes con Accordion en mobile, info expandida en lg */}
           <TabsContent value="suscripciones" className="grid gap-4">
