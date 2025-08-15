@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
+import baseUrl from "@/lib/baseUrl";
 
 export async function POST(req: Request) {
   const body = await req.json();
@@ -80,8 +81,8 @@ export async function POST(req: Request) {
         ];
 
     const session = await stripe.checkout.sessions.create({
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/checkout/success`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/checkout/cancel`,
+      success_url: `${baseUrl}/checkout/success`,
+      cancel_url: `${baseUrl}/checkout/cancel`,
       line_items,
       metadata: {
         typeOfPlan,
@@ -107,7 +108,7 @@ export async function POST(req: Request) {
     });
 
     return NextResponse.json({ url: session.url });
-  } catch (err: any ) {
+  } catch (err: any) {
     console.error("Error al crear sesión de checkout:", err);
 
     if (
