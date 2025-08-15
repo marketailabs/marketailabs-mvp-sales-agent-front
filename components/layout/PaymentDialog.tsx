@@ -52,15 +52,17 @@ export const PaymentDialog = () => {
           </TabsList>
 
           {/* Paquetes */}
-          <TabsContent value="paquetes" className="grid lg:grid-cols-3 gap-4">
-            {unicoPagoPayment?.map((payment: PaymentsPlan) => (
-              <CreditPayment
-                key={payment._id}
-                payment={payment}
-                userData={sanityUser}
-              />
-            ))}
-          </TabsContent>
+          {unicoPagoPayment.length > 0 && (
+            <TabsContent value="paquetes" className="grid lg:grid-cols-3 gap-4">
+              {unicoPagoPayment?.map((payment: PaymentsPlan) => (
+                <CreditPayment
+                  key={payment._id}
+                  payment={payment}
+                  userData={sanityUser}
+                />
+              ))}
+            </TabsContent>
+          )}
 
           {/* Planes con Accordion en mobile, info expandida en lg */}
           <TabsContent value="suscripciones" className="grid gap-4">
