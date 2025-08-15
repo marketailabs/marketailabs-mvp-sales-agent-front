@@ -75,7 +75,7 @@ export const MensualPayment = ({
       <AccordionItem value={payment._id} className="border rounded-xl mt-4">
         <AccordionTrigger className="p-4 flex justify-between items-center text-base font-medium">
           <span>{name}</span>
-          <span className="w-full text-right">${price}/mes</span>
+          <span className="w-full text-right">MXN {price}/mes</span>
         </AccordionTrigger>
         <AccordionContent className="p-4 pt-0 text-sm text-muted-foreground space-y-2">
           <p>{credits} créditos por mes</p>
@@ -106,7 +106,7 @@ export const MensualPayment = ({
         <p className="text-sm text-muted-foreground">
           {credits} créditos / mes
         </p>
-        <p className="text-base font-medium mt-2">${price}/mes</p>
+        <p className="text-base font-medium mt-2">MXN {price}/mes</p>
       </div>
 
       {/* Beneficios */}

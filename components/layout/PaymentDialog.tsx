@@ -45,7 +45,9 @@ export const PaymentDialog = () => {
 
         <Tabs defaultValue="paquetes" className="w-full">
           <TabsList className="w-full mb-4">
-            <TabsTrigger value="paquetes">Paquetes</TabsTrigger>
+            {unicoPagoPayment.length > 0 && (
+              <TabsTrigger value="paquetes">Paquetes</TabsTrigger>
+            )}
             <TabsTrigger value="suscripciones">Planes</TabsTrigger>
           </TabsList>
 
