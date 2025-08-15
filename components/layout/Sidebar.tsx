@@ -6,10 +6,10 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { AppWindowMac, Bot, Brain } from "lucide-react";
+import { AppWindowMac } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "../ui/button";
-import { ThemeButton } from "../ui/theme-button";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Tooltip,
   TooltipContent,
@@ -19,12 +19,15 @@ import {
 import { cn } from "@/lib/utils";
 import { useMediaQueryCustom } from "@/hook/mediaQueryHook";
 import { LogoComponent } from "../LogoComponent";
+
+import { AuthModal } from "../LoginComponents/AuthModal";
+import { SheetItems, SidebarItems } from "../SidebarItems";
+import { useGlobalContext } from "@/provider/GlobalContext";
 import Link from "next/link";
-import ExpressIcon from "../ExpressIcon";
 
 export const Sidebar = () => {
+  const { isSidebarOpen, setIsSidebarOpen, chats = [] } = useGlobalContext();
   const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const isMobile = useMediaQueryCustom("(max-width: 768px)");
 
   useEffect(() => {
@@ -52,11 +55,12 @@ export const Sidebar = () => {
   return (
     <header
       className={cn(
-        "fixed top-0 z-50 flex flex-col items-center md:items-start justify-between px-4 transition-all duration-200 ease-in-out bg-secondary md:h-screen",
-        isSidebarOpen ? "w-56" : "w-full md:w-17"
+        "fixed top-0 z-50 flex flex-col items-center md:items-start justify-between px-3.5 transition-all duration-300 ease-in-out bg-secondary md:h-screen overflow-clip",
+        isSidebarOpen ? "w-full md:max-w-64 pr-3" : "w-full md:max-w-17 pr-4.5"
       )}
     >
-      <div className="w-full h-16">
+      {/* Menu */}
+      <div className="w-full h-16 md:h-8 mt-0 md:mt-4">
         <div className="h-full w-full flex justify-between md:justify-start items-center">
           <LogoComponent className="md:hidden w-[250px]" />
 
@@ -80,6 +84,7 @@ export const Sidebar = () => {
         </div>
       </div>
 
+      {/* Mobile */}
       <Sheet open={isSheetOpen} onOpenChange={closeSheet}>
         <SheetContent className="w-[280px] ">
           <SheetHeader className="my-2">
@@ -87,137 +92,80 @@ export const Sidebar = () => {
           </SheetHeader>
 
           <nav className="flex-1 px-4 gap-2 flex flex-col">
-            <Button asChild>
-              <Link href="/">
-                <span>Prospector</span>
-                <Brain className="size-5" />
-              </Link>
-            </Button>
+            <SheetItems />
 
-            <Button asChild>
-              <Link href="/asistenteia">
-                <span>Prospector Assistant</span>
-                <Bot className="size-5" />
-              </Link>
-            </Button>
+            <ScrollArea
+              className={cn(
+                "h-[calc(90vh-10rem)] w-full mt-2 transition-opacity duration-300"
+              )}
+            >
+              <div>
+                <h4 className="px-3 mb-4 text-sm leading-none font-medium text-muted-foreground">
+                  Chats
+                </h4>
+                {chats &&
+                  chats.map((chat) => (
+                    <Button
+                      key={chat.id}
+                      variant={"ghost"}
+                      className="px-3 w-full justify-start truncate"
+                      asChild
+                    >
+                      <Link href={`/chat/${chat.id}`}>
+                        <p>{chat.title}</p>
+                      </Link>
+                    </Button>
+                  ))}
+              </div>
+            </ScrollArea>
 
-            <Button asChild>
-              <Link href="/asistente-exp">
-                <span>Prospector Express</span>
-                <ExpressIcon />
-              </Link>
-            </Button>
-
-            <div className="flex-1 flex flex-col justify-end items-end py-4 gap-2">
-              {/* <Button className="w-max">
-                <span>Recargar Creditos</span>
-                <Wallet className="size-4" />
-              </Button> */}
-
-              <ThemeButton
-                isMobile={isMobile}
-                align="end"
-                side="left"
-                rounded={"rounded-md"}
-              />
+            <div className="border-t border-white/10 pt-2 h-12 flex items-center mb-2">
+              <AuthModal />
             </div>
           </nav>
         </SheetContent>
       </Sheet>
 
-      <nav className="hidden md:flex flex-1 h-full flex-col justify-end items-start my-4 gap-2">
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                asChild
-                className="rounded-full"
-                size={isSidebarOpen ? "default" : "icon"}
-              >
-                <Link href="/">
-                  <Brain className="size-5" />
-                  <span className={cn(isSidebarOpen ? "" : "sr-only")}>
-                    Prospector
-                  </span>
-                </Link>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="right">
-              <p>Prospector</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+      {/* Desktop */}
+      <nav className="hidden md:flex flex-1 h-full flex-col justify-end items-start my-4 gap-2 w-full">
+        <SidebarItems isSidebarOpen={isSidebarOpen} />
 
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                asChild
-                className="rounded-full"
-                size={isSidebarOpen ? "default" : "icon"}
-              >
-                <Link href="/asistenteia">
-                  <Bot className="size-5" />
-                  <span className={cn(isSidebarOpen ? "" : "sr-only")}>
-                    Prospector Assistant
-                  </span>
-                </Link>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="right">
-              <p>Prospector Assistant</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <ScrollArea
+          className={cn(
+            "h-[calc(90vh-9rem)] w-full mt-2 transition-opacity duration-300",
+            isSidebarOpen
+              ? "opacity-100 pointer-events-auto"
+              : "opacity-0 pointer-events-none"
+          )}
+        >
+          <div>
+            <h4 className="px-3 mb-4 text-sm leading-none font-medium text-muted-foreground">
+              Chats
+            </h4>
+            {chats &&
+              chats.map((chat) => (
+                <Button
+                  key={chat.id}
+                  variant={"ghost"}
+                  className="px-3 w-full justify-start truncate"
+                  asChild
+                >
+                  <Link href={`/chat/${chat.id}`}>
+                    <p>{chat.title}</p>
+                  </Link>
+                </Button>
+              ))}
+          </div>
+        </ScrollArea>
 
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                asChild
-                className="rounded-full"
-                size={isSidebarOpen ? "default" : "icon"}
-              >
-                <Link href="/asistente-exp">
-                  <ExpressIcon />
-
-                  <span className={cn(isSidebarOpen ? "" : "sr-only")}>
-                    Prospector Express
-                  </span>
-                </Link>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="right">
-              <p>Prospector Express</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-
-        {/* <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                className="rounded-full"
-                size={isSidebarOpen ? "default" : "icon"}
-              >
-                <Wallet className="size-5" />
-                <span className={cn(isSidebarOpen ? "" : "sr-only")}>
-                  Recargar Creditos
-                </span>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="right">
-              <p>Recargar Creditos</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider> */}
-
-        <ThemeButton
-          rounded={"rounded-full"}
-          align="end"
-          side="right"
-          isSidebarOpen={isSidebarOpen}
-        />
+        <div
+          className={cn(
+            "border-t border-white/10 pt-2 h-12 flex items-center mb-2",
+            isSidebarOpen ? "w-full" : "w-max"
+          )}
+        >
+          <AuthModal />
+        </div>
       </nav>
     </header>
   );

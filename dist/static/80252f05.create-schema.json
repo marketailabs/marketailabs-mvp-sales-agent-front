@@ -1,0 +1,413 @@
+[
+  {
+    "fields": [
+      {
+        "name": "fullName",
+        "type": "string",
+        "title": "Nombre completo"
+      },
+      {
+        "validation": [
+          {
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ],
+            "level": "error"
+          }
+        ],
+        "name": "email",
+        "type": "string"
+      },
+      {
+        "validation": [
+          {
+            "rules": [
+              {
+                "flag": "custom"
+              },
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ],
+            "level": "error"
+          }
+        ],
+        "name": "token",
+        "type": "slug"
+      },
+      {
+        "validation": [
+          {
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ],
+            "level": "error"
+          }
+        ],
+        "name": "credits",
+        "type": "number",
+        "title": "Créditos"
+      },
+      {
+        "validation": [
+          {
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ],
+            "level": "error"
+          }
+        ],
+        "to": [
+          {
+            "type": "plansPayment"
+          }
+        ],
+        "name": "plan",
+        "type": "reference",
+        "title": "Plan de Pago"
+      },
+      {
+        "name": "subscriptionId",
+        "type": "string",
+        "title": "Subscription ID"
+      },
+      {
+        "name": "subscriptionPriceId",
+        "type": "string",
+        "title": "Subscription Price ID"
+      },
+      {
+        "name": "subscriptionStatus",
+        "type": "string"
+      },
+      {
+        "of": [
+          {
+            "type": "string"
+          }
+        ],
+        "name": "appliedInvoiceIds",
+        "type": "array",
+        "title": "Invoices aplicadas"
+      }
+    ],
+    "name": "user",
+    "type": "document"
+  },
+  {
+    "fields": [
+      {
+        "initialValue": "Formulario",
+        "validation": [
+          {
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ],
+            "level": "error"
+          }
+        ],
+        "name": "name",
+        "type": "string",
+        "title": "Nombre del Formulario"
+      },
+      {
+        "validation": [
+          {
+            "rules": [
+              {
+                "flag": "min",
+                "constraint": 1
+              }
+            ],
+            "level": "error",
+            "message": "Debes agregar al menos un campo al formulario"
+          }
+        ],
+        "of": [
+          {
+            "to": [
+              {
+                "type": "input"
+              }
+            ],
+            "type": "reference",
+            "title": "Reference to input"
+          }
+        ],
+        "name": "fields",
+        "type": "array",
+        "title": "Campos del Formulario"
+      }
+    ],
+    "name": "form",
+    "type": "document",
+    "title": "Formulario"
+  },
+  {
+    "fields": [
+      {
+        "validation": [
+          {
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ],
+            "level": "error"
+          }
+        ],
+        "name": "title",
+        "type": "string"
+      },
+      {
+        "validation": [
+          {
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ],
+            "level": "error"
+          }
+        ],
+        "name": "parrafo1",
+        "type": "string"
+      },
+      {
+        "name": "parrafo2",
+        "type": "string"
+      }
+    ],
+    "name": "intro",
+    "type": "document"
+  },
+  {
+    "fields": [
+      {
+        "validation": [
+          {
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ],
+            "level": "error"
+          }
+        ],
+        "name": "name",
+        "type": "string",
+        "title": "Nombre del Input"
+      },
+      {
+        "validation": [
+          {
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ],
+            "level": "error"
+          }
+        ],
+        "name": "titulo",
+        "type": "string",
+        "title": "Titulo del Input"
+      },
+      {
+        "validation": [
+          {
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ],
+            "level": "error"
+          }
+        ],
+        "name": "placeholder",
+        "type": "string",
+        "title": "Placeholder del Input"
+      },
+      {
+        "options": {
+          "list": [
+            {
+              "title": "TextArea",
+              "value": "textarea"
+            },
+            {
+              "title": "Texto",
+              "value": "texto"
+            },
+            {
+              "title": "Email",
+              "value": "email"
+            }
+          ]
+        },
+        "validation": [
+          {
+            "rules": [
+              {
+                "flag": "valid",
+                "constraint": [
+                  "textarea",
+                  "texto",
+                  "email"
+                ]
+              },
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ],
+            "level": "error"
+          }
+        ],
+        "name": "tipo",
+        "type": "string",
+        "title": "Tipo del Input"
+      },
+      {
+        "name": "validacion",
+        "type": "string",
+        "title": "Validacion del Input"
+      }
+    ],
+    "name": "input",
+    "type": "document"
+  },
+  {
+    "fields": [
+      {
+        "validation": [
+          {
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ],
+            "level": "error"
+          }
+        ],
+        "name": "name",
+        "type": "string",
+        "title": "Nombre del Plan"
+      },
+      {
+        "validation": [
+          {
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ],
+            "level": "error"
+          }
+        ],
+        "name": "price",
+        "type": "number",
+        "title": "Precio del Plan"
+      },
+      {
+        "validation": [
+          {
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ],
+            "level": "error"
+          }
+        ],
+        "name": "description",
+        "type": "text",
+        "title": "Descripción del Plan"
+      },
+      {
+        "options": {
+          "list": [
+            "mensual",
+            "un solo pago"
+          ]
+        },
+        "validation": [
+          {
+            "rules": [
+              {
+                "flag": "valid",
+                "constraint": [
+                  "mensual",
+                  "un solo pago"
+                ]
+              },
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ],
+            "level": "error"
+          }
+        ],
+        "name": "typeOfPlan",
+        "type": "string",
+        "title": "Tipo de Plan"
+      },
+      {
+        "name": "priceId",
+        "type": "string",
+        "title": "ID del Precio en Stripe (Solo para subscripciones)"
+      },
+      {
+        "of": [
+          {
+            "type": "string"
+          }
+        ],
+        "name": "benefits",
+        "type": "array",
+        "title": "Beneficios del Plan"
+      },
+      {
+        "validation": [
+          {
+            "rules": [
+              {
+                "flag": "presence",
+                "constraint": "required"
+              }
+            ],
+            "level": "error"
+          }
+        ],
+        "name": "credits",
+        "type": "number",
+        "title": "Créditos del Plan"
+      }
+    ],
+    "name": "plansPayment",
+    "type": "document",
+    "title": "Planes de Pago"
+  }
+]

@@ -146,7 +146,7 @@ export const SpeechToText = ({
   };
 
   return (
-    <div className="absolute bottom-1.5 right-1.5">
+    <div className="absolute bottom-[6px] right-[87px]">
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>

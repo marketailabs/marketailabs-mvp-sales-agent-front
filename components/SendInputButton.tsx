@@ -21,26 +21,28 @@ export const SendInputButton = ({
     <div className="relative">
       {children}
 
-      <div className="absolute top-[42px] right-1.5 flex gap-1">
+      <div className="absolute bottom-[6px] right-1.5 flex gap-1">
         {/* Reset button */}
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant={"default"}
-                size={"icon"}
-                className="rounded-full flex items-center justify-center"
-                onClick={resetForm}
-                type="button"
-              >
-                <RefreshCcw className="size-5" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Reiniciar</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        {resetForm && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant={"default"}
+                  size={"icon"}
+                  className="rounded-full flex items-center justify-center"
+                  onClick={resetForm}
+                  type="button"
+                >
+                  <RefreshCcw className="size-5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Reiniciar</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
 
         {/* Send button */}
         <TooltipProvider>

@@ -1,17 +1,35 @@
 "use server";
 
-import { messageSchema, type MessageSchemaType } from "@/lib/zodSchema";
-import runChat from "@/config/gemini";
 import {
-  subtractUserCredit,
-  verifyUserCredits,
-} from "@/sanity/lib/User/UserCredits";
+  messageSchema,
+  type MessageSchemaType,
+} from "@/lib/zodSchemas/formAnalizeSchema";
+import normalizarGemini from "@/config/normalizarGemini";
+import { subtractUserCredit } from "@/sanity/lib/User/UserCredits";
+import { auth } from "@/auth";
+import { prisma } from "@/lib/prisma";
 
 export async function sendMessage(
   data: MessageSchemaType,
-  configOption: number
+  configOption: number,
+  sanityUser: {
+    credits: number;
+    email: string;
+    token: string;
+    _id: string;
+  }
 ) {
-  // 1) Validar con Zod
+  // 1) Verificar que el usuario esté autenticado
+  const session = await auth();
+
+  if (!session?.user) {
+    throw new Error("No estás autenticado");
+  }
+
+  // obtenemos el id del usuario
+  const userId = session.user.id!;
+
+  // 2) Validar con Zod
   const result = messageSchema.safeParse(data);
   if (!result.success) {
     throw new Error(
@@ -19,25 +37,26 @@ export async function sendMessage(
     );
   }
 
-  // 2) Validar con Sanity que el usuario existe, el token sea correcto y que tenga créditos
-  const { mensaje, email, token } = result.data;
+  // 3) Validar con Sanity que el usuario existe, el token sea correcto y que tenga créditos
+  const { mensaje } = result.data;
 
-  const user = await verifyUserCredits(email, token);
+  // 3.1) Validar que el usuario tenga créditos
+  if (sanityUser.credits <= 0) {
+    throw new Error("No tienes créditos disponibles");
+  }
 
   try {
-    // 3) Normalizar o Realizar una redacción de cliente con Gemini
+    // 4) Normalizar o Realizar una redacción de cliente con Gemini
     const prompt = `${mensaje}`;
-    const textoEntregado = await runChat(prompt, 2, configOption);
+    const textoEntregado = await normalizarGemini(prompt, 2, configOption);
 
-    console.log("textoEntregado", textoEntregado);
-
-    // 4) Enviar al backend con texto limpio
+    // 5) Enviar al backend con texto limpio
     const analyzeRes = await fetch(`${process.env.API_URL}/analyze`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         texto: textoEntregado,
-        email: email.trim().toLowerCase(),
+        email: sanityUser.email.trim().toLowerCase(),
       }),
     });
 
@@ -49,12 +68,25 @@ export async function sendMessage(
       );
     }
 
-    // 5) Restar crédito solo si todo salió bien
-    const updatedUser = await subtractUserCredit(user._id);
+    const analyzeData = await analyzeRes.json();
 
+    // 6) Restar crédito solo si todo salió bien
+    const updatedUser = await subtractUserCredit(sanityUser._id);
+
+    // 7) Crear un chat en la base de datos
+    const chat = await prisma.chat.create({
+      data: {
+        userId: userId,
+        userMessage: mensaje,
+        apiResponse: analyzeData,
+        title: "Análisis de Perfil - " + new Date().toLocaleDateString(),
+      },
+    });
+
+    // 8) Devolver todo + el ID del chat para redirigir a la página de chat
     return {
-      ...(await analyzeRes.json()),
       restCredit: updatedUser.credits,
+      chatId: chat.id,
     };
   } catch (error) {
     console.error("Error al enviar el mensaje sendMessageAction:", error);

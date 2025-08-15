@@ -1,4 +1,4 @@
-import { Users, Home, LayoutTemplate } from "lucide-react";
+import { Users, Home, LayoutTemplate, CreditCard } from "lucide-react";
 import type { StructureResolver } from "sanity/structure";
 
 export const structure: StructureResolver = (S) =>
@@ -32,6 +32,14 @@ export const structure: StructureResolver = (S) =>
                 .child(S.documentTypeList("input").title("Campos de Entrada")),
             ])
         ),
+
+      S.divider(),
+
+      // Plans Payment Section
+      S.listItem()
+        .title("Planes de Pago")
+        .icon(CreditCard)
+        .child(S.documentTypeList("plansPayment").title("Planes de Pago")),
 
       S.divider(),
 

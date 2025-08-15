@@ -1,0 +1,25 @@
+import { FormSend } from "@/components/FormSend";
+import { HeroText } from "@/components/layout/HeroText";
+import { MainContainer } from "@/components/layout/MainContainer";
+import { getForms } from "@/sanity/lib/Form/getForm";
+import { getIntro } from "@/sanity/lib/Intro/getIntro";
+import { Metadata } from "next";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 3600;
+
+export const metadata: Metadata = {
+  title: "Profiler Express Assistant",
+};
+
+export default async function AsistenteIAPage() {
+  const forms = await getForms();
+  const introData = await getIntro();
+
+  return (
+    <MainContainer>
+      <HeroText introOption={1} introData={introData} />
+      <FormSend formOption={1} formSanity={forms} />
+    </MainContainer>
+  );
+}

@@ -20,7 +20,7 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: "Chat Semantico Comercial",
+    default: "Profiler | Chat Semantico Comercial",
     template: "%s | Chat Semantico Comercial",
   },
   description: "Chat Semantico Comercial",
@@ -32,7 +32,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="es" suppressHydrationWarning>
       <body className={`${workSans.variable} ${inter.variable} antialiased`}>
         {(await draftMode()).isEnabled && (
           <>

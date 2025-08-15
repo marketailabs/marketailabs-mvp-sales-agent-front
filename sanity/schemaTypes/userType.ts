@@ -2,7 +2,7 @@ import { User } from "lucide-react";
 import { defineField, defineType } from "sanity";
 
 // Función para generar un ID aleatorio en formato XXXX-XXXXXX
-const generateProspectorId = () => {
+const generateProfilerId = () => {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   const charsNumber = "0123456789";
   const randomPart1 = Array.from(
@@ -40,25 +40,57 @@ export const userType = defineType({
       title: "Token",
       type: "slug",
       options: {
-        source: () => generateProspectorId(),
+        source: () => generateProfilerId(),
         isUnique: () => true,
       },
       validation: (rule) => rule.required(),
     }),
     defineField({
       name: "credits",
-      title: "Creditos",
+      title: "Créditos",
       type: "number",
       validation: (rule) => rule.required(),
+    }),
+    defineField({
+      name: "plan",
+      title: "Plan de Pago",
+      type: "reference",
+      to: [{ type: "plansPayment" }],
+      validation: (rule) => rule.required(),
+    }),
+    // En caso de que el usuario tenga plan se rellenaran estos campos
+
+    defineField({
+      name: "subscriptionId",
+      title: "Subscription ID",
+      type: "string",
+    }),
+    defineField({
+      name: "subscriptionPriceId",
+      title: "Subscription Price ID",
+      type: "string",
+    }),
+    defineField({
+      name: "subscriptionStatus",
+      title: "Subscription Status",
+      type: "string",
+    }),
+    defineField({
+      name: "appliedInvoiceIds",
+      title: "Invoices aplicadas",
+      type: "array",
+      of: [{ type: "string" }],
     }),
   ],
   preview: {
     select: {
       fullName: "fullName",
+      planName: "plan.name",
     },
-    prepare({ fullName }) {
+    prepare({ fullName, planName }) {
       return {
         title: fullName,
+        subtitle: planName || "Sin plan",
       };
     },
   },

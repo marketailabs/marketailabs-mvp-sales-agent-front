@@ -1,19 +1,23 @@
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { createMessageSchema, MessageSchemaType } from "../lib/zodSchema";
+import {
+  createMessageSchema,
+  MessageSchemaType,
+} from "../lib/zodSchemas/formAnalizeSchema";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormField, FormItem, FormLabel, FormControl } from "./ui/form";
 import { SendInputButton } from "./SendInputButton";
 import { Textarea } from "./ui/textarea";
 import { Check } from "lucide-react";
-import { Input } from "./ui/input";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { sendMessage } from "@/actions/sendMessageAction";
 import { GetFormsQueryResult } from "@/sanity.types";
 import { SpeechToText } from "./speechToText";
 import { cn } from "@/lib/utils";
+import { useGlobalContext } from "@/provider/GlobalContext";
+import { useRouter } from "next/navigation";
 
 type FormSendProps = {
   formSanity: GetFormsQueryResult;
@@ -21,10 +25,13 @@ type FormSendProps = {
 };
 
 export const FormSend = ({ formSanity, formOption }: FormSendProps) => {
+  const { isLoggedIn, setOpenLoginModal, sanityUser, getChats } =
+    useGlobalContext();
   const [isListening, setIsListening] = useState(false);
+  const [isPending, startTransition] = useTransition();
   const { fields } = formSanity[formOption ?? 0];
 
-  const [isPending, startTransition] = useTransition();
+  const router = useRouter();
 
   // Obtener el campo de texto (textarea) y su validación
   const textareaField = fields?.find((field) => field.tipo === "textarea");
@@ -39,13 +46,11 @@ export const FormSend = ({ formSanity, formOption }: FormSendProps) => {
   });
 
   const defaultValues: MessageSchemaType = {
-    email: "",
     mensaje: "",
-    token: "",
   };
 
   const form = useForm<MessageSchemaType>({
-    resolver: zodResolver(messageSchema),
+    resolver: zodResolver(messageSchema) as any,
     defaultValues: defaultValues,
   });
 
@@ -53,18 +58,29 @@ export const FormSend = ({ formSanity, formOption }: FormSendProps) => {
   const onSubmit = form.handleSubmit((values) =>
     startTransition(async () => {
       try {
+        if (!isLoggedIn) {
+          setOpenLoginModal(true);
+          toast.error("Debes iniciar sesión para enviar mensajes");
+          return;
+        }
+
         let result;
 
         if (formOption === 0) {
-          result = await sendMessage(values, 0);
+          result = await sendMessage(values, 0, sanityUser);
         } else {
-          result = await sendMessage(values, 1);
+          result = await sendMessage(values, 1, sanityUser);
         }
 
-        toast.success(`Mensaje enviado correctamente! 🎉`, {
+        // Obtener los chats
+        getChats();
+
+        router.push(`/chat/${result.chatId}`);
+
+        // Redirigir a la página de chat
+        toast.success(`Análisis enviado correctamente! 🎉`, {
           description: `${result.restCredit} créditos restantes`,
         });
-        form.reset();
       } catch (err: Error | unknown) {
         if (err instanceof Error) {
           toast.error(err.message);
@@ -94,118 +110,58 @@ export const FormSend = ({ formSanity, formOption }: FormSendProps) => {
     <div className="flex flex-col p-8 mx-auto max-w-2xl lg:max-w-4xl">
       <Form {...form}>
         <form onSubmit={onSubmit} className="space-y-4">
-          <FormField
-            name="mensaje"
-            control={form.control}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="mb-1 text-base font-medium flex justify-between items-center font-inter">
-                  <span className="text-primary">{fields![0].titulo}</span>
-                  <span className="flex items-center gap-1 border border-input dark:bg-input/30 rounded-full px-2 py-1 text-sm text-primary shadow-lg bg-background">
-                    {countWords(field.value) >=
-                    Number(fields![0].validacion) ? (
-                      <>
-                        <Check className="size-4 text-green-500" />
-                        {fields![0].validacion}/{fields![0].validacion}
-                      </>
-                    ) : (
-                      `${countWords(field.value)}/${fields![0].validacion}`
-                    )}
-                  </span>
-                </FormLabel>
-                <div className="relative">
-                  <FormControl>
-                    <Textarea
-                      className={cn(
-                        "resize-none h-52 text-sm shadow-[0px_4px_8px_1px_rgba(0,0,0,0.15)] dark:shadow-[0px_8px_10px_2px_rgba(0,0,0,0.25)] bg-background",
-                        isListening && "animate-pulse"
-                      )}
-                      placeholder={fields![0].placeholder!}
-                      {...field}
-                    />
-                  </FormControl>
-
-                  {formOption! >= 1 && (
-                    <SpeechToText
-                      isListening={isListening}
-                      setIsListening={setIsListening}
-                      onText={(spokenText) =>
-                        form.setValue(
-                          "mensaje",
-                          `${form.watch("mensaje")} ${spokenText}`,
-                          {
-                            shouldValidate: true,
-                          }
-                        )
-                      }
-                    />
-                  )}
-                </div>
-
-                {errors.mensaje && (
-                  <p className="text-red-500 text-sm mt-2">
-                    {errors.mensaje.message}
-                  </p>
-                )}
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            name="email"
-            control={form.control}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel
-                  htmlFor="email"
-                  className="mb-1 text-base font-medium font-inter"
-                >
-                  <span className="text-primary">{fields![1].titulo}</span>
-                </FormLabel>
-                <FormControl>
-                  <Input
-                    type="text"
-                    id="email"
-                    placeholder={fields![1].placeholder!}
-                    className="w-full rounded-full h-12 shadow-[0px_4px_8px_1px_rgba(0,0,0,0.15)] 
-      dark:shadow-[0px_8px_10px_2px_rgba(0,0,0,0.25)] bg-background"
-                    {...field}
-                  />
-                </FormControl>
-                {errors.email && (
-                  <p className="text-red-500 text-sm mt-4">
-                    {errors.email.message}
-                  </p>
-                )}
-              </FormItem>
-            )}
-          />
-
           <SendInputButton isSubmitting={isPending} resetForm={resetForm}>
             <FormField
-              name="token"
+              name="mensaje"
               control={form.control}
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel
-                    htmlFor="token"
-                    className="mb-1 text-base font-medium font-inter"
-                  >
-                    <span className="text-primary">{fields![2].titulo}</span>
+                <FormItem className="relative">
+                  <FormLabel className="mb-1 text-base font-medium flex justify-between items-center font-inter">
+                    <span className="text-primary">{fields![0].titulo}</span>
+                    <span className="flex items-center gap-1 border border-input dark:bg-input/30 rounded-full px-2 py-1 text-sm text-primary shadow-lg bg-background">
+                      {countWords(field.value) >=
+                      Number(fields![0].validacion) ? (
+                        <>
+                          <Check className="size-4 text-green-500" />
+                          {fields![0].validacion}/{fields![0].validacion}
+                        </>
+                      ) : (
+                        `${countWords(field.value)}/${fields![0].validacion}`
+                      )}
+                    </span>
                   </FormLabel>
-                  <FormControl>
-                    <Input
-                      type="text"
-                      id="token"
-                      placeholder={fields![2].placeholder!}
-                      className="w-full pr-24 rounded-full h-12 shadow-[0px_4px_8px_1px_rgba(0,0,0,0.15)] 
-      dark:shadow-[0px_8px_10px_2px_rgba(0,0,0,0.25)] bg-background"
-                      {...field}
-                    />
-                  </FormControl>
-                  {errors.token && (
-                    <p className="text-red-500 text-sm mt-4">
-                      {errors.token.message}
+                  <div className="relative">
+                    <FormControl>
+                      <Textarea
+                        className={cn(
+                          "resize-none h-64 text-sm",
+                          isListening && "animate-pulse"
+                        )}
+                        placeholder={fields![0].placeholder!}
+                        {...field}
+                      />
+                    </FormControl>
+
+                    {formOption! >= 1 && (
+                      <SpeechToText
+                        isListening={isListening}
+                        setIsListening={setIsListening}
+                        onText={(spokenText) =>
+                          form.setValue(
+                            "mensaje",
+                            `${form.watch("mensaje")} ${spokenText}`,
+                            {
+                              shouldValidate: true,
+                            }
+                          )
+                        }
+                      />
+                    )}
+                  </div>
+
+                  {errors.mensaje && (
+                    <p className="absolute bottom-0 text-red-500 text-sm mt-2">
+                      {errors.mensaje.message}
                     </p>
                   )}
                 </FormItem>

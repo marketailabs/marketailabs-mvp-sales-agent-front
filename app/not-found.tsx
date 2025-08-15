@@ -1,26 +1,25 @@
 import { Button } from "@/components/ui/button";
 import { Info } from "lucide-react";
 import Link from "next/link";
-import React from "react";
 
 const NotFound = () => {
   return (
-    <div className="flex min-h-screen min-w-screen flex-col items-center justify-center">
-      <div
-        className="flex flex-col items-center gap-2 p-16 rounded-lg shadow-[0px_4px_8px_1px_rgba(0,0,0,0.15)] 
-      dark:shadow-[0px_8px_10px_2px_rgba(0,0,0,0.25)] bg-background"
-      >
-        <div className="flex justify-center items-center w-36 h-36 rounded-full bg-red-600/20">
-          <Info className="size-24 text-red-600/70" />
+    <main className="flex min-h-screen w-full flex-col items-center justify-center px-4 py-12 text-center bg-background">
+      <div className="max-w-md w-full flex flex-col items-center gap-6 p-8 rounded-2xl shadow-md dark:shadow-lg bg-card border border-border">
+        <div className="flex items-center justify-center w-24 h-24 rounded-full bg-destructive/10">
+          <Info className="w-16 h-16 text-destructive" />
         </div>
-        <h1 className="text-4xl font-bold mt-4">404</h1>
-        <p className="text-lg mt-2">Página no encontrada</p>
-
-        <Button className="mt-4 w-full" asChild>
+        <h1 className="text-5xl font-extrabold tracking-tight text-foreground">
+          404
+        </h1>
+        <p className="text-lg text-muted-foreground">
+          Lo sentimos, no pudimos encontrar esta página.
+        </p>
+        <Button asChild className="mt-4">
           <Link href="/">Volver al inicio</Link>
         </Button>
       </div>
-    </div>
+    </main>
   );
 };
 
