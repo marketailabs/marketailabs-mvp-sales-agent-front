@@ -13,8 +13,8 @@ export default async function HomePage() {
 
   return (
     <MainContainer>
-      <HeroText introOption={0} introData={introData} />
-      <FormSend formOption={0} formSanity={forms} />
+      <HeroText introOption={1} introData={introData} />
+      <FormSend formOption={1} formSanity={forms} />
     </MainContainer>
   );
 }

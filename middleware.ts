@@ -7,7 +7,7 @@ const { auth: middleware } = NextAuth(authConfig);
 // Rutas públicas
 const publicRouter = [
   "/",
-  "/asistente-exp",
+  "/profiler",
   "/asistenteia",
   "/forgot-password",
   "/reset-password",

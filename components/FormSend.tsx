@@ -107,7 +107,7 @@ export const FormSend = ({ formSanity, formOption }: FormSendProps) => {
   };
 
   return (
-    <div className="flex flex-col p-8 mx-auto max-w-2xl lg:max-w-4xl">
+    <div className="flex flex-col p-8 mx-auto w-full max-w-6xl">
       <Form {...form}>
         <form onSubmit={onSubmit} className="space-y-4">
           <SendInputButton isSubmitting={isPending} resetForm={resetForm}>

@@ -15,14 +15,14 @@ import { usePathname } from "next/navigation";
 
 const SidebarLinks = [
   {
-    label: "Profiler",
+    label: "Profiler Express",
     href: "/",
-    icon: <Brain className="size-5" />,
+    icon: <ExpressIcon />,
   },
   {
-    label: "Profiler Express",
-    href: "/asistente-exp",
-    icon: <ExpressIcon />,
+    label: "Profiler",
+    href: "/profiler",
+    icon: <Brain className="size-5" />,
   },
 ];
 

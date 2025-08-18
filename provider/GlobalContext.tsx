@@ -56,7 +56,7 @@ export const GlobalContext = createContext<GlobalContextType>({
 });
 
 export const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const [sanityUser, setSanityUser] = useState({
     credits: 0,
     email: "",
@@ -64,7 +64,7 @@ export const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
     _id: "",
   });
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [chats, setChats] = useState<
     { id: string; title: string | null; updatedAt: Date }[]
   >([]);
@@ -122,13 +122,13 @@ export const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
 
   // Efecto para obtener el usuario de Sanity y los chats
   useEffect(() => {
-    if (session) {
+    if (status === "authenticated" && session) {
       setIsLoggedIn(true);
       getSanityUser();
       getChats();
       getPaymentsPlan();
     }
-  }, [session]);
+  }, [session, status]);
 
   // Valor del contexto
   const value = {

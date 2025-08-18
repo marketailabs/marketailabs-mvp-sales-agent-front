@@ -11,7 +11,7 @@ export const MainContainer = ({
 }) => {
   return (
     <main
-      className={`flex-1 relative font-sans mt-4 md:mt-0 md:ml-17 ${className}`}
+      className={`flex-1 h-full w-full max-w-6xl mx-auto flex flex-col items-center justify-between relative font-sans mt-4 ${className}`}
     >
       {/* Modals */}
       <ProfileDialog />

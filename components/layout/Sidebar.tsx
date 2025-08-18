@@ -96,7 +96,7 @@ export const Sidebar = () => {
 
             <ScrollArea
               className={cn(
-                "h-[calc(90vh-10rem)] w-full mt-2 transition-opacity duration-300"
+                "h-full w-full mt-2 transition-opacity duration-300"
               )}
             >
               <div>
@@ -132,7 +132,7 @@ export const Sidebar = () => {
 
         <ScrollArea
           className={cn(
-            "h-[calc(90vh-9rem)] w-full mt-2 transition-opacity duration-300",
+            "h-full w-full mt-2 transition-opacity duration-300",
             isSidebarOpen
               ? "opacity-100 pointer-events-auto"
               : "opacity-0 pointer-events-none"

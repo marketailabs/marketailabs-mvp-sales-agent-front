@@ -5,17 +5,18 @@ import {
   getPaymentsPlan,
   getPaymentsPlanByPriceId,
 } from "@/sanity/lib/Payments/getPaymentsPlan";
+
 import {
-  addUserCredit,
   getSanityUser,
   getSanityUserById,
 } from "@/sanity/lib/User/UserCredits";
 
-// Obtener los precios de los planes
+/**
+ * getPrices - obtiene planes desde Sanity
+ */
 export const getPrices = async () => {
   try {
     const paymentsPlan = await getPaymentsPlan();
-
     return paymentsPlan;
   } catch (error) {
     console.error(error);
@@ -23,59 +24,15 @@ export const getPrices = async () => {
   }
 };
 
-// Añadir créditos al usuario
-export const addCreditsToUser = async ({
-  userId,
-  planCredits,
-  email,
-}: {
-  userId?: string;
-  planCredits?: string | number;
-  email?: string;
-}) => {
-  try {
-    const amount = Number(planCredits || 0);
-    if (isNaN(amount) || amount <= 0) {
-      throw new Error("planCredits inválido: " + planCredits);
-    }
-
-    // Si userId no existe o no es un _id de Sanity, intenta buscar por email
-    let targetUserId = userId;
-
-    if (!targetUserId && email) {
-      // Buscar usuario por el email proporcionado
-      const user = await getSanityUser(email);
-      if (!user) throw new Error("No se encontró usuario con email: " + email);
-      targetUserId = user._id;
-    }
-
-    // Si aún no tenemos un userId, lanzar error
-    if (!targetUserId) {
-      throw new Error(
-        "No se proporcionó userId ni se encontró usuario por email"
-      );
-    }
-
-    // Añadir créditos al usuario
-    await addUserCredit(targetUserId, amount);
-  } catch (error) {
-    console.error("addCreditsToUser error:", error);
-    return { error: "Error al añadir créditos", detail: String(error) };
-  }
-};
-
 /**
- * Cambia el plan del usuario en Sanity y suma créditos iniciales (idempotente por invoiceId).
+ * changeUserPlanAndAddCredits
  *
- * data puede incluir:
- * - userId?: string
- * - email?: string
- * - priceId?: string (Stripe price id -> para buscar plan en Sanity)
- * - planId?: string (si ya tenés el _id del plan en Sanity)
- * - planCredits?: number|string (override de credits a sumar)
- * - subscriptionId?: string | null
- * - invoiceId?: string | null  (para idempotencia, optional)
- * - setCreditsFromPlan?: boolean (si querés reemplazar credits por los del plan en vez sumar)
+ * Ahora **SIEMPRE** aplica los créditos como REEMPLAZO (set) en los flujos controlados por Stripe:
+ * - Si existe planDoc (priceId -> plan) -> usa assignPlanToUser con setCreditsFromPlan = true (reemplaza)
+ * - Si viene planCredits (override) -> setea directamente credits = planCredits (reemplaza)
+ * - Si la llamada solo quiere actualizar status/metadata -> actualiza metadata sin tocar credits
+ *
+ * Idempotencia por invoiceId (appliedInvoiceIds).
  */
 export async function changeUserPlanAndAddCredits(data: {
   userId?: string;
@@ -85,7 +42,9 @@ export async function changeUserPlanAndAddCredits(data: {
   planCredits?: number | string | null;
   subscriptionId?: string | null;
   invoiceId?: string | null;
-  setCreditsFromPlan?: boolean;
+  setCreditsFromPlan?: boolean; // lo mantenemos para compatibilidad, pero la lógica principal siempre reemplaza
+  subscriptionStatus?: string | null;
+  customerId?: string | null;
 }) {
   const {
     userId,
@@ -95,22 +54,20 @@ export async function changeUserPlanAndAddCredits(data: {
     planCredits,
     subscriptionId,
     invoiceId,
-    setCreditsFromPlan = false,
+    // setCreditsFromPlan = false, // lo ignoramos para el comportamiento por defecto
+    subscriptionStatus = null,
+    customerId = null,
   } = data;
 
-  // 1) encontrar usuario
+  // 1) obtener usuario
   let user = null;
-  if (userId) {
-    user = await getSanityUserById(userId);
-  } else if (email) {
-    user = await getSanityUser(email);
-  } else {
-    throw new Error("Se requiere userId o email");
-  }
+  if (userId) user = await getSanityUserById(userId);
+  else if (email) user = await getSanityUser(email);
+  else throw new Error("Se requiere userId o email");
 
   if (!user) throw new Error("Usuario no encontrado");
 
-  // 2) si invoiceId ya fue aplicada -> no duplicar
+  // 2) idempotencia por invoiceId
   if (
     invoiceId &&
     Array.isArray(user.appliedInvoiceIds) &&
@@ -119,62 +76,76 @@ export async function changeUserPlanAndAddCredits(data: {
     return { success: true, message: "Invoice ya aplicada previamente", user };
   }
 
-  // 3) resolver plan: si nos dieron priceId intentar buscar plan por priceId, si no usar planId
+  // 3) resolver planDoc (por priceId o planId)
   let planDoc = null;
   if (priceId) planDoc = await getPaymentsPlanByPriceId(priceId);
   if (!planDoc && planId) {
-    // si nos pasaron planId directo
     planDoc = await (async () =>
       await getPaymentsPlanByPriceId(planId))().catch(() => null);
   }
 
-  // 4) determinar creditsToAdd
-  let creditsToAdd = 0;
-  const cp = Number(planCredits ?? 0);
-  if (!isNaN(cp) && cp > 0) creditsToAdd = cp;
-  else if (planDoc && typeof planDoc.credits === "number")
-    creditsToAdd = planDoc.credits;
-  else if (planId) {
-    // try fetching plan by id if priceId failed
-    const planById = await (async () => {
-      const { client } = await import("@/sanity/lib/client"); // adjust import if necessary
-      return client.fetch(
-        `*[_type == "plansPayment" && _id == $id][0]{_id, credits}`,
-        { id: planId }
-      );
-    })();
-    if (planById?.credits) creditsToAdd = planById.credits;
-  }
+  // 4) Si la intención es SOLO actualizar status/metadata (sin tocar credits)
+  const wantsOnlyStatusUpdate =
+    !invoiceId && !priceId && !planCredits && !!subscriptionStatus;
 
-  if (!creditsToAdd || creditsToAdd <= 0) {
-    throw new Error("No se pudo determinar creditsToAdd");
-  }
-
-  // 5) sumar créditos (usa helper)
-  await addUserCredit(user._id, creditsToAdd);
-
-  // 6) asignar plan y metadata en Sanity (assignPlanToUser maneja setIfMissing/appliedInvoiceIds append)
-  const targetPlanId = planDoc?._id ?? planId;
-  if (targetPlanId) {
-    await assignPlanToUser(user._id, targetPlanId as string, {
+  if (wantsOnlyStatusUpdate) {
+    const existingPlanId = user.plan?._id ?? planId ?? "";
+    await assignPlanToUser(user._id, existingPlanId, {
       subscriptionId: subscriptionId ?? null,
       subscriptionPriceId: priceId ?? null,
-      subscriptionStatus: "active",
-      invoiceId: invoiceId ?? null,
-      setCreditsFromPlan,
-    });
-  } else {
-    // aún así, guarda subscription metadata si existe, y la invoice
-    await assignPlanToUser(user._id, user.plan?._id ?? "", {
-      subscriptionId: subscriptionId ?? null,
-      subscriptionPriceId: priceId ?? null,
-      subscriptionStatus: "active",
+      subscriptionStatus: subscriptionStatus ?? null,
       invoiceId: invoiceId ?? null,
       setCreditsFromPlan: false,
+      customerId: customerId ?? null,
     });
+
+    const updatedUser = await getSanityUserById(user._id);
+    return { success: true, user: updatedUser, message: "Updated status only" };
   }
 
-  // 7) retornar usuario actualizado (re-fetch)
-  const updatedUser = await getSanityUserById(user._id);
-  return { success: true, user: updatedUser };
+  // 5) Si existe planDoc (resuelto por priceId/planId) -> REEMPLAZAMOS créditos desde plan
+  if (planDoc) {
+    const targetPlanId = planDoc._id;
+    await assignPlanToUser(user._id, targetPlanId, {
+      subscriptionId: subscriptionId ?? null,
+      subscriptionPriceId: priceId ?? null,
+      subscriptionStatus: subscriptionStatus ?? "active",
+      invoiceId: invoiceId ?? null,
+      setCreditsFromPlan: true, // REEMPLAZAR con credits del plan
+      customerId: customerId ?? null,
+    });
+
+    const updatedUser = await getSanityUserById(user._id);
+    return { success: true, user: updatedUser };
+  }
+
+  // 6) Si no hay planDoc pero viene planCredits explícito -> REEMPLAZAMOS credits al valor indicado
+  const cp = Number(planCredits ?? 0);
+  if (!isNaN(cp) && cp > 0) {
+    const amount = Math.floor(cp);
+    const { client } = await import("@/sanity/lib/client");
+
+    const patch = client
+      .patch(user._id)
+      .setIfMissing({ appliedInvoiceIds: [] });
+
+    // set credits al valor exacto
+    patch.set({ credits: amount });
+
+    // metadata asociada
+    if (subscriptionId) patch.set({ subscriptionId });
+    if (priceId) patch.set({ subscriptionPriceId: priceId });
+    if (subscriptionStatus) patch.set({ subscriptionStatus });
+    if (customerId) patch.set({ customerId });
+
+    if (invoiceId) patch.append("appliedInvoiceIds", [invoiceId]);
+
+    const updated = await patch.commit({ autoGenerateArrayKeys: true });
+    return { success: true, user: updated };
+  }
+
+  // 7) Si llegamos acá, no tuvimos forma de determinar qué credits setear -> error
+  throw new Error(
+    "No se pudo determinar créditos a aplicar (ni plan asociado ni planCredits)."
+  );
 }

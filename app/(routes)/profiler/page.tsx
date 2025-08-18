@@ -18,8 +18,8 @@ export default async function AsistenteIAPage() {
 
   return (
     <MainContainer>
-      <HeroText introOption={1} introData={introData} />
-      <FormSend formOption={1} formSanity={forms} />
+      <HeroText introOption={0} introData={introData} />
+      <FormSend formOption={0} formSanity={forms} />
     </MainContainer>
   );
 }

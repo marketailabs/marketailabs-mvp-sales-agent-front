@@ -5,8 +5,18 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "./ui/alert-dialog";
 
 // Accordion (mobile)s
 export const MensualPayment = ({
@@ -19,55 +29,97 @@ export const MensualPayment = ({
   userData: SanityUser;
 }) => {
   const [isPending, startTransition] = useTransition();
+  const [openDialog, setOpenDialog] = useState(false);
 
-  const { credits, price, name, benefits, priceId, description, typeOfPlan } =
-    payment;
+  const { credits, price, name, benefits, priceId, description } = payment;
 
   // Manejar el pago de créditos
-  const handlePayCredit = async () => {
+  const handleAssignFreePlan = async () => {
     startTransition(async () => {
       try {
-        // Payload para el endpoint de checkout
+        const freePlanId = "9080a077-b426-478d-9e08-1eeb5fe9ca07";
+        await fetch("/api/assign-plan", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userId: userData._id,
+            planId: freePlanId,
+            setCreditsFromPlan: true,
+          }),
+        });
+        toast.success("Ahora estás en el Plan Gratuito");
+      } catch (err) {
+        console.error(err);
+        toast.error("No se pudo actualizar al plan gratuito.");
+      }
+    });
+  };
 
+  const handlePaySubscription = async () => {
+    // Si es plan gratuito, abrimos alert-dialog
+    if (!priceId) {
+      setOpenDialog(true);
+      return;
+    }
+
+    // Plan con precio: pasar por Stripe
+    startTransition(async () => {
+      try {
         const body = {
-          price,
           name,
           description,
-          typeOfPlan, // "mensual" o "un solo pago"
-          planCredits: credits, // cantidad de créditos que otorga el plan
+          planCredits: credits,
           userData: {
             email: userData.email,
             userId: userData._id,
           },
-          priceId: priceId ?? null, // priceId para subscripciones
+          priceId,
         };
 
-        // Llamar al endpoint de checkout
         const res = await fetch("/api/checkout", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
         });
 
-        // Manejar errores de la respuesta
-        if (!res.ok) {
-          const errText = await res.text();
-          throw new Error(`Checkout error: ${errText || res.status}`);
-        }
-
-        const data = await res.json(); // { url: session.url }
-        const url = data.url;
-
-        if (!url) throw new Error("No se recibió url de Stripe");
-
-        // Redirigir al checkout de Stripe
-        window.location.assign(url);
+        if (!res.ok) throw new Error("Checkout error");
+        const data = await res.json();
+        if (!data.url) throw new Error("No se recibió url de Stripe");
+        window.location.assign(data.url);
       } catch (error) {
-        console.error("Error al crear sesión de checkout:", error);
-        // Aquí podés mostrar un toast o UI de error
-        toast.error("No se pudo iniciar el pago. Intentá nuevamente.");
+        console.error(error);
+        toast.error("No se pudo iniciar el pago.");
       }
     });
+  };
+
+  const AlertFreePlan = () => {
+    return (
+      <AlertDialog open={openDialog} onOpenChange={setOpenDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Confirmar cambio a plan gratuito
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Estás a punto de cambiar al Plan Gratuito. Esto reemplazará tu
+              plan actual y créditos. ¿Deseas continuar?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                setOpenDialog(false);
+                handleAssignFreePlan();
+              }}
+            >
+              Confirmar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    );
   };
 
   if (accordion) {
@@ -80,19 +132,22 @@ export const MensualPayment = ({
         <AccordionContent className="p-4 pt-0 text-sm text-muted-foreground space-y-2">
           <p>{credits} créditos por mes</p>
           <ul className="list-disc pl-5 space-y-1">
-            {benefits.map((b) => (
-              <li key={b}>{b}</li>
-            ))}
+            {benefits && benefits.map((b) => <li key={b}>{b}</li>)}
           </ul>
           <div className="pt-2">
             <Button
-              className="w-full"
-              disabled={isPending}
-              onClick={handlePayCredit}
+              className="w-full mt-2"
+              disabled={isPending || payment._id === userData.plan?._id}
+              onClick={handlePaySubscription}
             >
-              Elegir {name}
+              {payment._id === userData.plan?._id
+                ? "Actualmente activo"
+                : `Elegir ${name}`}
             </Button>
           </div>
+
+          {/* AlertDialog solo para plan gratuito */}
+          {!priceId && <AlertFreePlan />}
         </AccordionContent>
       </AccordionItem>
     );
@@ -111,25 +166,22 @@ export const MensualPayment = ({
 
       {/* Beneficios */}
       <ul className="flex-1 list-disc pl-5 text-sm text-muted-foreground space-y-1 mb-4">
-        {benefits.map((b) => (
-          <li key={b}>{b}</li>
-        ))}
+        {benefits && benefits.map((b) => <li key={b}>{b}</li>)}
       </ul>
 
       {/* Botón */}
-      {payment._id === userData.plan?._id ? (
-        <Button className="w-full mt-auto" disabled>
-          Actualmente activo
-        </Button>
-      ) : (
-        <Button
-          className="w-full mt-auto"
-          disabled={isPending}
-          onClick={handlePayCredit}
-        >
-          Elegir {name}
-        </Button>
-      )}
+      <Button
+        className="w-full mt-2"
+        disabled={isPending || payment._id === userData.plan?._id}
+        onClick={handlePaySubscription}
+      >
+        {payment._id === userData.plan?._id
+          ? "Actualmente activo"
+          : `Elegir ${name}`}
+      </Button>
+
+      {/* AlertDialog solo para plan gratuito */}
+      {!priceId && <AlertFreePlan />}
     </div>
   );
 };

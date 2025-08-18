@@ -12,7 +12,7 @@ const ExpressIcon = () => {
       <Zap
         className={cn(
           "absolute top-0 -right-1 size-2 transition-all duration-300",
-          pathname === "/asistente-exp"
+          pathname === "/"
             ? "stroke-white fill-white dark:stroke-black dark:fill-black"
             : "stroke-dark-foreground dark:stroke-white fill-dark-foreground dark:fill-white"
         )}

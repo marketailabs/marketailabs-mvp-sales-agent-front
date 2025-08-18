@@ -115,7 +115,7 @@ export const ChatWithIA = ({
   };
 
   return (
-    <div className="container mx-auto mt-8 w-full px-4 max-w-6xl space-y-8">
+    <div className="container mx-auto mt-8 w-full max-w-6xl px-4 space-y-8">
       <div className="space-y-1">
         <h2 className="text-xl font-semibold">Preguntale a la IA</h2>
         <p className="text-muted-foreground">
@@ -126,7 +126,7 @@ export const ChatWithIA = ({
       {/* Chat history */}
 
       {chatHistory.length > 0 && (
-        <ScrollArea className="h-[350px] px-4">
+        <ScrollArea className="h-[500px] px-4">
           <div className="flex flex-col gap-4">
             {chatHistory.map((message, index) => {
               if (message.role === "user") {
@@ -145,7 +145,7 @@ export const ChatWithIA = ({
 
               return (
                 <div key={index} className="flex flex-col gap-2 mr-16 ">
-                  <p className="font-medium text-muted-foreground">IA</p>
+                  <p className="font-medium text-muted-foreground">Profiler</p>
                   <div
                     className="text-sm p-3 bg-muted rounded-lg rounded-tl-none"
                     dangerouslySetInnerHTML={{
@@ -158,7 +158,7 @@ export const ChatWithIA = ({
 
             {isPending && (
               <div className="flex flex-col gap-2">
-                <p className="font-medium text-muted-foreground">IA</p>
+                <p className="font-medium text-muted-foreground">Profiler</p>
                 <p className="text-sm p-2 rounded-md animate-pulse">...</p>
               </div>
             )}

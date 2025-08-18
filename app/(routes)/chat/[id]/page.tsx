@@ -31,7 +31,7 @@ export default async function ChatPage({
   if (!chat || chat.userId !== session.user.id) return redirect("/");
 
   return (
-    <MainContainer className="py-24">
+    <MainContainer className="pt-24">
       <ChatInfo chat={chat} />
       <ChatWithIA chat={chat} chatId={id} />
     </MainContainer>

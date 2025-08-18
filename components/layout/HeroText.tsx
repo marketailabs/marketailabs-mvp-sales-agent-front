@@ -10,7 +10,7 @@ export const HeroText = async ({
   const intro = introData[introOption];
 
   return (
-    <section className="flex flex-col px-8 mx-auto max-w-2xl lg:max-w-4xl mt-28 lg:mt-32">
+    <section className="flex flex-col px-8 w-full mt-20">
       <h1 className="text-[44px] lg:text-[66px] text-center lg:text-start font-medium tracking-tight leading-[1.1]">
         <span className="block">{intro.title}</span>
       </h1>

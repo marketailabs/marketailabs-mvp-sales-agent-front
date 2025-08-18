@@ -8,7 +8,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
-import { AudioLines, X } from "lucide-react";
+import { AudioLines, Mic, X } from "lucide-react";
 import { toast } from "sonner";
 
 type SpeechToTextProps = {
@@ -161,7 +161,7 @@ export const SpeechToText = ({
               {isListening ? (
                 <X className="size-5" />
               ) : (
-                <AudioLines className="size-5" />
+                <Mic className="size-5" />
               )}
             </Button>
           </TooltipTrigger>

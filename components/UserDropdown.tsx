@@ -12,11 +12,12 @@ import { DropdownMenuLabel } from "@radix-ui/react-dropdown-menu";
 import { cn } from "@/lib/utils";
 import { Separator } from "./ui/separator";
 import { HandCoins, HelpCircle, UserRound } from "lucide-react";
-import { Skeleton } from "./ui/skeleton";
 import { useGlobalContext } from "@/provider/GlobalContext";
+import { useRouter } from "next/navigation";
 
 export const UserDropdown = ({ isSidebarOpen }: { isSidebarOpen: boolean }) => {
   const { data: session } = useSession();
+  const router = useRouter();
   const { sanityUser, setOpenProfileModal, setOpenPaymentModal } =
     useGlobalContext();
 
@@ -74,7 +75,7 @@ export const UserDropdown = ({ isSidebarOpen }: { isSidebarOpen: boolean }) => {
           onClick={() => setOpenPaymentModal(true)}
         >
           <HandCoins className="size-4" />
-          <span className="ml-2">Comprar Créditos</span>
+          <span className="ml-2">Actualizar plan</span>
         </DropdownMenuItem>
         <DropdownMenuItem
           className="cursor-pointer"
@@ -83,7 +84,10 @@ export const UserDropdown = ({ isSidebarOpen }: { isSidebarOpen: boolean }) => {
           <UserRound className="size-4" />
           <span className="ml-2">Perfil</span>
         </DropdownMenuItem>
-        <DropdownMenuItem className="cursor-pointer">
+        <DropdownMenuItem
+          className="cursor-pointer"
+          onClick={() => router.push("/ayuda")}
+        >
           <HelpCircle className="size-4" />
           <span className="ml-2">Ayuda</span>
         </DropdownMenuItem>

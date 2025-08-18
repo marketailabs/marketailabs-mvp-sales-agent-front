@@ -8,15 +8,7 @@ import {
 } from "@/components/ui/dialog";
 import { useSession } from "next-auth/react";
 import { useGlobalContext } from "@/provider/GlobalContext";
-import {
-  HandCoins,
-  Mail,
-  UserCircle,
-  BadgeCheck,
-  Camera,
-  PenLine,
-  Palette,
-} from "lucide-react";
+import { HandCoins, Mail, UserCircle, BadgeCheck, Palette } from "lucide-react";
 import Image from "next/image";
 import { ThemeButton } from "../ui/theme-button";
 import { Avatar } from "../ui/avatar";
@@ -26,8 +18,6 @@ export const ProfileDialog = () => {
   const { data: session } = useSession();
   const { sanityUser, openProfileModal, setOpenProfileModal } =
     useGlobalContext();
-
-  console.log(session?.user?.image);
 
   if (!session) return null;
 
