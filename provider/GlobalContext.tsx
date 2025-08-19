@@ -1,10 +1,17 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useTransition,
+} from "react";
 import { useSession } from "next-auth/react";
 import { GlobalContextType, PaymentsPlan } from "@/types/globalContextTypes";
 import {
   changeTitleAction,
+  deleteChatAction,
   getChatsAction,
   getSanityUserAction,
 } from "@/actions/userAction";
@@ -15,6 +22,9 @@ export const GlobalContext = createContext<GlobalContextType>({
   isLoggedIn: false,
   isSidebarOpen: false,
   setIsSidebarOpen: () => {},
+  getSanityUser: async () => {
+    return;
+  },
   sanityUser: {
     credits: 0,
     email: "",
@@ -41,6 +51,10 @@ export const GlobalContext = createContext<GlobalContextType>({
   handleSaveTitle: async () => {
     return;
   },
+  handleDeleteChat: async () => {
+    return;
+  },
+  isPendingChats: false,
   openLoginModal: false,
   openProfileModal: false,
   openPaymentModal: false,
@@ -56,15 +70,23 @@ export const GlobalContext = createContext<GlobalContextType>({
 });
 
 export const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
+  // Session
   const { data: session, status } = useSession();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [initialized, setInitialized] = useState(false);
+
+  // Sanity
   const [sanityUser, setSanityUser] = useState({
     credits: 0,
     email: "",
     token: "",
     _id: "",
   });
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  // UI variable
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
+  // Chats
   const [chats, setChats] = useState<
     { id: string; title: string | null; updatedAt: Date }[]
   >([]);
@@ -78,15 +100,28 @@ export const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
   const [openPaymentModal, setOpenPaymentModal] = useState(false);
 
   // Obtener los chats
+  const [isPendingChats, startTransitionChats] = useTransition();
   const getChats = async () => {
-    const chats = await getChatsAction(session?.user?.email!);
-    setChats(chats);
+    startTransitionChats(async () => {
+      try {
+        const chatsData = await getChatsAction(session?.user?.email!);
+        setChats(chatsData);
+      } catch (err) {
+        console.error("Error al obtener chats:", err);
+      }
+    });
   };
 
   // Funcion para actualizar el chat
   const handleUpdateChatDate = async (chatId: string) => {
     await updateChatAction(chatId);
-    getChats();
+
+    // Local update: solo la fecha
+    setChats((prev) =>
+      prev.map((c) => (c.id === chatId ? { ...c, updatedAt: new Date() } : c))
+    );
+
+    startTransitionChats(() => getChats());
   };
 
   // Funciones para cambiar el título y eliminar un chat
@@ -97,11 +132,28 @@ export const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
     chatId: string;
     title: string | null;
   }) => {
-    if (title) {
-      await changeTitleAction(chatId, title);
-    }
+    if (!title) return;
 
-    getChats();
+    await changeTitleAction(chatId, title);
+
+    // Actualizar localmente
+    setChats((prev) =>
+      prev.map((c) => (c.id === chatId ? { ...c, title } : c))
+    );
+
+    // Actualizar en segundo plano
+    startTransitionChats(() => getChats());
+  };
+
+  const handleDeleteChat = async ({ chatId }: { chatId: string }) => {
+    if (!chatId) return;
+
+    const response = await deleteChatAction(chatId);
+
+    if (response.success) {
+      setChats((prev) => prev.filter((c) => c.id !== chatId));
+      startTransitionChats(() => getChats());
+    }
   };
 
   // Obtener el usuario de Sanity
@@ -122,13 +174,14 @@ export const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
 
   // Efecto para obtener el usuario de Sanity y los chats
   useEffect(() => {
-    if (status === "authenticated" && session) {
+    if (!initialized && status === "authenticated" && session) {
+      setInitialized(true);
       setIsLoggedIn(true);
       getSanityUser();
       getChats();
       getPaymentsPlan();
     }
-  }, [session, status]);
+  }, [status, session, initialized]);
 
   // Valor del contexto
   const value = {
@@ -136,9 +189,12 @@ export const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
     isSidebarOpen,
     setIsSidebarOpen,
     sanityUser,
+    getSanityUser,
     chats,
     getChats,
+    isPendingChats,
     handleSaveTitle,
+    handleDeleteChat,
     openLoginModal,
     openProfileModal,
     openPaymentModal,

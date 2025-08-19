@@ -16,14 +16,23 @@ import { EditChatTitle } from "@/components/EditChatTitle";
 
 import { ApiResponse, ChatType } from "@/types/chatTypes";
 
-export const ChatInfo = ({ chat }: { chat: ChatType }) => {
+interface ChatInfoProps {
+  chat: ChatType;
+  currentChat: {
+    id: string;
+    title: string | null;
+    updatedAt: Date;
+  };
+}
+
+export const ChatInfo = ({ chat, currentChat }: ChatInfoProps) => {
   const response = chat.apiResponse as ApiResponse;
 
   return (
     <section className="container mx-auto px-4 max-w-6xl w-full space-y-8">
       <EditChatTitle
-        chatId={chat.id}
-        initialTitle={chat.title || "Sin título"}
+        chatId={currentChat.id}
+        initialTitle={currentChat.title || "Sin título"}
       />
 
       {/* Mensaje del usuario */}

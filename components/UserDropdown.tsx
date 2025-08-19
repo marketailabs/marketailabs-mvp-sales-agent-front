@@ -17,16 +17,16 @@ import { useRouter } from "next/navigation";
 
 export const UserDropdown = ({ isSidebarOpen }: { isSidebarOpen: boolean }) => {
   const { data: session } = useSession();
-  const router = useRouter();
   const { sanityUser, setOpenProfileModal, setOpenPaymentModal } =
     useGlobalContext();
+
+  const router = useRouter();
 
   if (!session?.user) {
     return null;
   }
 
   const { credits } = sanityUser;
-
   const userImage = session.user.image!;
 
   return (
@@ -65,7 +65,7 @@ export const UserDropdown = ({ isSidebarOpen }: { isSidebarOpen: boolean }) => {
         <DropdownMenuLabel className="pt-2 pb-1 px-2">
           <p className="text-sm font-medium">{session.user?.name}</p>
           <p className="text-xs text-muted-foreground">
-            Creditos restantes: {credits} créditos
+            Créditos restantes: {credits} créditos
           </p>
         </DropdownMenuLabel>
         <Separator className="my-1" />

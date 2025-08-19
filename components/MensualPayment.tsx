@@ -44,7 +44,7 @@ export const MensualPayment = ({
           body: JSON.stringify({
             userId: userData._id,
             planId: freePlanId,
-            setCreditsFromPlan: true,
+            setCreditsFromPlan: false,
           }),
         });
         toast.success("Ahora estás en el Plan Gratuito");
@@ -127,10 +127,12 @@ export const MensualPayment = ({
       <AccordionItem value={payment._id} className="border rounded-xl mt-4">
         <AccordionTrigger className="p-4 flex justify-between items-center text-base font-medium">
           <span>{name}</span>
-          <span className="w-full text-right">MXN {price}/mes</span>
+          {priceId && (
+            <span className="w-full text-right">MXN {price}/mes</span>
+          )}
         </AccordionTrigger>
         <AccordionContent className="p-4 pt-0 text-sm text-muted-foreground space-y-2">
-          <p>{credits} créditos por mes</p>
+          <p>{priceId && <>{credits} créditos / mes</>}</p>
           <ul className="list-disc pl-5 space-y-1">
             {benefits && benefits.map((b) => <li key={b}>{b}</li>)}
           </ul>
@@ -159,9 +161,11 @@ export const MensualPayment = ({
       <div className="mb-4 space-y-1">
         <p className="text-xl font-semibold">{name}</p>
         <p className="text-sm text-muted-foreground">
-          {credits} créditos / mes
+          {priceId && <>{credits} créditos / mes</>}
         </p>
-        <p className="text-base font-medium mt-2">MXN {price}/mes</p>
+        {priceId && (
+          <p className="text-base font-medium mt-2">MXN {price}/mes</p>
+        )}
       </div>
 
       {/* Beneficios */}

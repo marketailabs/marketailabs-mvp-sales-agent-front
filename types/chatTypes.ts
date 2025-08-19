@@ -1,4 +1,4 @@
-import { Chat } from "@/lib/prismaClient";
+import { Chat } from "@prisma/client";
 
 export type ChatType = Chat;
 

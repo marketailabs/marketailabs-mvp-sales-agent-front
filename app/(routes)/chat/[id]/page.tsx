@@ -1,9 +1,7 @@
 import { auth } from "@/auth";
-import { MainContainer } from "@/components/layout/MainContainer";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
-import { ChatInfo } from "@/components/layout/ChatInfo";
-import { ChatWithIA } from "@/components/layout/ChatWithIA";
+import { ChatLayout } from "@/components/layout/ChatLayout";
 
 export default async function ChatPage({
   params,
@@ -30,10 +28,5 @@ export default async function ChatPage({
 
   if (!chat || chat.userId !== session.user.id) return redirect("/");
 
-  return (
-    <MainContainer className="pt-24">
-      <ChatInfo chat={chat} />
-      <ChatWithIA chat={chat} chatId={id} />
-    </MainContainer>
-  );
+  return <ChatLayout chat={chat} id={id} />;
 }

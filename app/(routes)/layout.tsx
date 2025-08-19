@@ -10,7 +10,7 @@ const HomeLayout = ({ children }: { children: React.ReactNode }) => {
       <div className="flex min-h-screen flex-col md:flex-row">
         <Sidebar />
 
-        <div className="flex-1 flex flex-col md:ml-17">
+        <div className="flex-1 flex flex-col">
           {children}
 
           <Footer />

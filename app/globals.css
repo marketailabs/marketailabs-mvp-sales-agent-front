@@ -133,3 +133,65 @@
   background-color: var(--secondary);
   border-radius: 10px;
 }
+
+.sheetScrollHeight {
+  height: 34vh;
+}
+
+.scrollHeight {
+  height: 42vh;
+}
+
+@media screen and (min-height: 400px) {
+  .scrollHeight {
+    height: 50vh;
+  }
+  .sheetScrollHeight {
+    height: 40vh;
+  }
+}
+
+@media screen and (min-height: 450px) {
+  .sheetScrollHeight {
+    height: 48vh;
+  }
+}
+
+@media screen and (min-height: 500px) {
+  .scrollHeight {
+    height: 58vh;
+  }
+  .sheetScrollHeight {
+    height: 52vh;
+  }
+}
+
+@media screen and (min-height: 550px) {
+  .sheetScrollHeight {
+    height: 56vh;
+  }
+}
+
+@media screen and (min-height: 600px) {
+  .scrollHeight {
+    height: 65vh;
+  }
+  .sheetScrollHeight {
+    height: 60vh;
+  }
+}
+
+@media screen and (min-height: 700px) {
+  .scrollHeight {
+    height: 70vh;
+  }
+  .sheetScrollHeight {
+    height: 66vh;
+  }
+}
+
+@media screen and (min-height: 750px) {
+  .sheetScrollHeight {
+    height: 70vh;
+  }
+}

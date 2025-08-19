@@ -11,6 +11,7 @@ export type GlobalContextType = {
       }[];
   getChats: () => Promise<void>;
   handleUpdateChatDate: (chatId: string) => Promise<void>;
+  handleDeleteChat: ({ chatId }: { chatId: string }) => Promise<void>;
   handleSaveTitle: ({
     chatId,
     title,
@@ -18,6 +19,10 @@ export type GlobalContextType = {
     chatId: string;
     title: string | null;
   }) => Promise<void>;
+
+  getSanityUser: () => Promise<void>;
+
+  isPendingChats: boolean;
 
   // Modals states
   openLoginModal: boolean;

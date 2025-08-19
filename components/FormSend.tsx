@@ -25,7 +25,7 @@ type FormSendProps = {
 };
 
 export const FormSend = ({ formSanity, formOption }: FormSendProps) => {
-  const { isLoggedIn, setOpenLoginModal, sanityUser, getChats } =
+  const { getSanityUser, isLoggedIn, setOpenLoginModal, sanityUser, getChats } =
     useGlobalContext();
   const [isListening, setIsListening] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -81,6 +81,8 @@ export const FormSend = ({ formSanity, formOption }: FormSendProps) => {
         toast.success(`Análisis enviado correctamente! 🎉`, {
           description: `${result.restCredit} créditos restantes`,
         });
+
+        getSanityUser();
       } catch (err: Error | unknown) {
         if (err instanceof Error) {
           toast.error(err.message);

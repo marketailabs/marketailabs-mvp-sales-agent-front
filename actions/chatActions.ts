@@ -5,6 +5,77 @@ import { ApiResponse, ChatMessageJson } from "@/types/chatTypes";
 import { chatSchema, ChatSchemaType } from "@/lib/zodSchemas/chatSchema";
 import chatGemini from "@/config/chatGemini";
 import { prisma } from "@/lib/prisma";
+import chatGpt from "@/config/chatGpt";
+
+export async function chatAction2(
+  data: ChatSchemaType,
+  apiResponse: ApiResponse,
+  chatId: string
+) {
+  try {
+    // 1) Verificar que el usuario esté autenticado
+    const session = await auth();
+    if (!session?.user) {
+      throw new Error("No estás autenticado");
+    }
+    const userId = session.user.id!;
+
+    // 2) Buscar el chat existente
+    const chat = await prisma.chat.findUnique({
+      where: { id: chatId },
+      include: { messages: true },
+    });
+    if (!chat) throw new Error("Chat no encontrado");
+    if (chat.userId !== userId) throw new Error("Chat no encontrado");
+
+    // 3) Validar mensaje con Zod
+    const result = chatSchema.safeParse(data);
+    if (!result.success) {
+      throw new Error(
+        Object.values(result.error.flatten().fieldErrors).flat().join(", ")
+      );
+    }
+
+    // 4) Guardar el mensaje del usuario
+    await prisma.chatMessage.create({
+      data: {
+        chatId: chat.id,
+        content: {
+          role: "USER",
+          text: data.mensaje,
+        },
+      },
+    });
+
+    // 5) Llamar a ChatGPT
+    const aiResponse = await chatGpt({
+      apiResponse,
+      userMessage: data.mensaje,
+      chatHistory: chat.messages as unknown as ChatMessageJson[],
+      retries: 2,
+    });
+
+    // 6) Guardar la respuesta de la IA
+    await prisma.chatMessage.create({
+      data: {
+        chatId: chat.id,
+        content: {
+          role: "AI",
+          text: aiResponse,
+        },
+      },
+    });
+
+    return aiResponse;
+  } catch (error) {
+    console.error("Error al enviar el mensaje chatAction:", error);
+    throw new Error(
+      error instanceof Error
+        ? error.message
+        : "Ocurrió un error al procesar tu solicitud"
+    );
+  }
+}
 
 export async function chatAction(
   data: ChatSchemaType,
@@ -84,6 +155,7 @@ export async function chatAction(
   }
 }
 
+// Funcion para recuperar los mensajes del chat
 export async function fetchChatMessages(chatId: string) {
   const dbMessages = await prisma.chatMessage.findMany({
     where: { chatId },
@@ -98,6 +170,7 @@ export async function fetchChatMessages(chatId: string) {
   return chatHistory;
 }
 
+// Funcion para actualizar el tiempo del chat
 export async function updateChatAction(chatId: string) {
   await prisma.chat.update({
     where: { id: chatId },

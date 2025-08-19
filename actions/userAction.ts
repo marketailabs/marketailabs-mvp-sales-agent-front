@@ -66,23 +66,28 @@ export async function changeTitleAction(id: string, title: string) {
 
 // Borrar un chat
 export async function deleteChatAction(id: string) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    throw new Error("No estás autenticado");
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      throw new Error("No estás autenticado");
+    }
+
+    // 1) Validar que el usuario sea el propietario del chat
+    const chat = await prisma.chat.findUnique({
+      where: { id, userId: session.user.id },
+    });
+    if (!chat) {
+      throw new Error("No tienes permisos para eliminar este chat");
+    }
+
+    // 2) Eliminar el chat
+    await prisma.chat.delete({
+      where: { id, userId: session.user.id },
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error(error);
+    throw new Error("Error al eliminar el chat");
   }
-
-  // 1) Validar que el usuario sea el propietario del chat
-  const chat = await prisma.chat.findUnique({
-    where: { id, userId: session.user.id },
-  });
-  if (!chat) {
-    throw new Error("No tienes permisos para eliminar este chat");
-  }
-
-  // 2) Eliminar el chat
-  await prisma.chat.delete({
-    where: { id, userId: session.user.id },
-  });
-
-  return { success: true };
 }
