@@ -16,7 +16,7 @@ import { SpeechToText } from "../speechToText";
 import { chatSchema, ChatSchemaType } from "@/lib/zodSchemas/chatSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ApiResponse, ChatType } from "@/types/chatTypes";
-import { chatAction, fetchChatMessages } from "@/actions/chatActions";
+import { chatAction2, fetchChatMessages } from "@/actions/chatActions";
 import { toast } from "sonner";
 import { useGlobalContext } from "@/provider/GlobalContext";
 import { ScrollArea } from "../ui/scroll-area";
@@ -86,7 +86,7 @@ export const ChatWithIA = ({
 
     startTransition(async () => {
       try {
-        const result = await chatAction(
+        const result = await chatAction2(
           values,
           chat.apiResponse as ApiResponse,
           chatId
