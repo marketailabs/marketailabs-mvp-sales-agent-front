@@ -2,6 +2,7 @@ import { client } from "../client";
 import { sanityFetch } from "../live";
 import { defineQuery } from "groq";
 
+// Buscar todos los planes
 export async function getPaymentsPlan() {
   const getPaymentsPlanQuery = defineQuery(`
     *[_type == "plansPayment"] | order(_createdAt asc){
@@ -12,12 +13,34 @@ export async function getPaymentsPlan() {
       typeOfPlan,
       benefits,
       credits,
-      priceId,
+      price_id,
     }
   `);
 
   const paymentsPlanData = await sanityFetch({ query: getPaymentsPlanQuery });
   return paymentsPlanData.data;
+}
+
+// Buscar el plan por id
+export async function getPaymentsPlanById(id: string | null) {
+  if (!id) return null;
+  const plan = await client.fetch(
+    `*[_type == "plansPayment" && _id == $id][0]{_id, name, price, credits, price_id}`,
+    { id }
+  );
+  return plan;
+}
+
+/**
+ * Buscar plan por product id (price_id...)
+ */
+export async function getPaymentsPlanByProductId(productId: string | null) {
+  if (!productId) return null;
+  const plan = await client.fetch(
+    `*[_type == "plansPayment" && price_id == $productId][0]{_id, name, price, credits, price_id}`,
+    { productId }
+  );
+  return plan;
 }
 
 /**
@@ -37,7 +60,7 @@ export async function assignPlanToUser(
     subscriptionPriceId?: string | null;
     subscriptionStatus?: string | null;
     invoiceId?: string | null;
-    setCreditsFromPlan?: boolean; // reemplaza credits con los del plan
+    setCreditsFromPlan?: boolean;
     customerId?: string | null;
   }
 ) {
@@ -85,15 +108,52 @@ export async function assignPlanToUser(
   return updated;
 }
 
-// Obtener un plan de pago por su priceId (para Stripe webhooks)
-export async function getPaymentsPlanByPriceId(priceId: string) {
-  if (!priceId) return null;
-  const plan = await client.fetch(
-    `*[_type == "plansPayment" && priceId == $priceId][0]{_id, name, price, credits, priceId}`,
-    { priceId }
+/**
+ *  Asigna el plan gratuito a un usuario
+ * @param userId _id del usuario
+ * @returns  documento actualizado
+ */
+export async function assignFreePlanToUser(userId: string) {
+  const freePlanId =
+    process.env.NEXT_PUBLIC_FREE_PLAN_ID ||
+    "9080a077-b426-478d-9e08-1eeb5fe9ca07";
+  if (!freePlanId) return null;
+
+  const freePlanDoc = await client.fetch(
+    `*[_type == "plansPayment" && _id == $id][0]{_id, credits}`,
+    { id: freePlanId }
   );
 
-  console.log("getPaymentsPlanByPriceId -> plan:", plan);
+  const patch = client.patch(userId).set({
+    plan: { _type: "reference", _ref: freePlanId },
+    credits: freePlanDoc?.credits ?? 0,
+    appliedInvoiceIds: [],
+  });
 
-  return plan;
+  patch.unset([
+    "subscriptionId",
+    "subscriptionPriceId",
+    "subscriptionStatus",
+    "customerId",
+  ]);
+
+  const updated = await patch.commit({ autoGenerateArrayKeys: true });
+  return updated;
+}
+
+/**
+ * Setea el valor de applyingFreePlan para un usuario
+ * @param userId _id del usuario
+ * @param value booleano para aplicar o quitar el plan gratuito
+ * @returns usuario actualizado
+ */
+export async function setApplyingFreePlan(userId: string, value: boolean) {
+  if (!userId) throw new Error("User ID is required");
+
+  const updatedUser = await client
+    .patch(userId)
+    .set({ applyingFreePlan: value })
+    .commit({ autoGenerateArrayKeys: true });
+
+  return updatedUser;
 }

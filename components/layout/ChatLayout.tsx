@@ -20,14 +20,14 @@ export const ChatLayout = ({ chat, id }: { chat: ChatType; id: string }) => {
   // Si aún no tenemos el chat actualizado, mostrar skeleton
   if (!currentChat || isPendingChats) {
     return (
-      <MainContainer className="pt-24">
+      <MainContainer className="pt-16 md:pt-24 px-4">
         <ChatSkeleton />
       </MainContainer>
     );
   }
 
   return (
-    <MainContainer className="pt-24">
+    <MainContainer className="pt-16 md:pt-24 px-4">
       <ChatInfo chat={chat} currentChat={currentChat} />
       <ChatWithIA chat={chat} chatId={id} />
     </MainContainer>

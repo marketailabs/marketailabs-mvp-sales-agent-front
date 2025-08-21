@@ -29,7 +29,7 @@ export const ChatInfo = ({ chat, currentChat }: ChatInfoProps) => {
   const response = chat.apiResponse as ApiResponse;
 
   return (
-    <section className="container mx-auto px-4 max-w-6xl w-full space-y-8">
+    <section className="container mx-auto px-4 max-w-6xl w-full space-y-4">
       <EditChatTitle
         chatId={currentChat.id}
         initialTitle={currentChat.title || "Sin título"}

@@ -17,6 +17,7 @@ import {
 } from "@/actions/userAction";
 import { updateChatAction } from "@/actions/chatActions";
 import { getPrices } from "@/actions/payment-actions";
+import { needsReset } from "@/lib/utils";
 
 export const GlobalContext = createContext<GlobalContextType>({
   isLoggedIn: false,
@@ -120,8 +121,6 @@ export const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
     setChats((prev) =>
       prev.map((c) => (c.id === chatId ? { ...c, updatedAt: new Date() } : c))
     );
-
-    startTransitionChats(() => getChats());
   };
 
   // Funciones para cambiar el título y eliminar un chat
@@ -160,7 +159,32 @@ export const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
   const getSanityUser = async () => {
     try {
       const user = await getSanityUserAction(session?.user?.email!);
-      setSanityUser(user);
+
+      // 1) Chequear si es free plan
+      const FREE_PLAN_ID =
+        process.env.NEXT_PUBLIC_FREE_PLAN_ID ||
+        "9080a077-b426-478d-9e08-1eeb5fe9ca07";
+      const isFreePlan = user?.plan?._id === FREE_PLAN_ID;
+
+      if (isFreePlan && needsReset(user.lastCreditsReset)) {
+        // 2) Resetear créditos en backend
+        await fetch("/api/reset-credits", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userId: user._id,
+            planCredits: user?.plan?.credits,
+          }),
+        });
+
+        console.log("Créditos reseteados");
+
+        // 3) Volver a pedir el user actualizado
+        const updatedUser = await getSanityUserAction(session?.user?.email!);
+        setSanityUser(updatedUser);
+      } else {
+        setSanityUser(user);
+      }
     } catch (error) {
       console.error(error);
     }

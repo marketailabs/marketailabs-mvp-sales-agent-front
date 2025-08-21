@@ -135,63 +135,78 @@
 }
 
 .sheetScrollHeight {
-  height: 34vh;
+  height: 26vh;
 }
 
 .scrollHeight {
-  height: 42vh;
+  height: 30vh;
 }
 
 @media screen and (min-height: 400px) {
   .scrollHeight {
-    height: 50vh;
+    height: 36vh;
   }
   .sheetScrollHeight {
-    height: 40vh;
+    height: 32vh;
   }
 }
 
 @media screen and (min-height: 450px) {
+  .scrollHeight {
+    height: 38vh;
+  }
   .sheetScrollHeight {
-    height: 48vh;
+    height: 38vh;
   }
 }
 
 @media screen and (min-height: 500px) {
   .scrollHeight {
-    height: 58vh;
+    height: 46vh;
   }
   .sheetScrollHeight {
-    height: 52vh;
+    height: 45vh;
   }
 }
 
 @media screen and (min-height: 550px) {
+  .scrollHeight {
+    height: 54vh;
+  }
   .sheetScrollHeight {
-    height: 56vh;
+    height: 48vh;
   }
 }
 
 @media screen and (min-height: 600px) {
   .scrollHeight {
-    height: 65vh;
+    height: 58vh;
   }
   .sheetScrollHeight {
-    height: 60vh;
+    height: 53vh;
+  }
+}
+
+@media screen and (min-height: 650px) {
+  .sheetScrollHeight {
+    height: 56vh;
   }
 }
 
 @media screen and (min-height: 700px) {
   .scrollHeight {
-    height: 70vh;
+    height: 64vh;
   }
   .sheetScrollHeight {
-    height: 66vh;
+    height: 59vh;
   }
 }
 
 @media screen and (min-height: 750px) {
+  .scrollHeight {
+    height: 69vh;
+  }
   .sheetScrollHeight {
-    height: 70vh;
+    height: 62vh;
   }
 }

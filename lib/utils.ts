@@ -5,6 +5,19 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+// Funcion para verificar el ultimo reset de creditos
+export function needsReset(lastCreditsReset: string | null): boolean {
+  if (!lastCreditsReset) {
+    console.log("No hay lastCreditsReset → resetear");
+    return true;
+  }
+  const last = new Date(lastCreditsReset);
+  const now = new Date();
+  const diffDays = (now.getTime() - last.getTime()) / (1000 * 60 * 60 * 24);
+
+  return diffDays >= 30;
+}
+
 // Formatear en caso de que el texto contenga títulos
 const formatHeadings = (text: string) => {
   // Títulos desde ### hasta #

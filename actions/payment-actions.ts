@@ -1,15 +1,18 @@
 "use server";
 
+import Stripe from "stripe";
+import { stripe } from "@/lib/stripe";
+import {
+  getSanityUserById,
+  getUserByCustomerId,
+} from "@/sanity/lib/User/UserCredits";
 import {
   assignPlanToUser,
   getPaymentsPlan,
-  getPaymentsPlanByPriceId,
+  getPaymentsPlanByProductId,
+  setApplyingFreePlan,
 } from "@/sanity/lib/Payments/getPaymentsPlan";
-
-import {
-  getSanityUser,
-  getSanityUserById,
-} from "@/sanity/lib/User/UserCredits";
+import { getUserByEmail } from "@/sanity/lib/User/getUserByEmail";
 
 /**
  * getPrices - obtiene planes desde Sanity
@@ -25,127 +28,260 @@ export const getPrices = async () => {
 };
 
 /**
- * changeUserPlanAndAddCredits
- *
- * Ahora **SIEMPRE** aplica los créditos como REEMPLAZO (set) en los flujos controlados por Stripe:
- * - Si existe planDoc (priceId -> plan) -> usa assignPlanToUser con setCreditsFromPlan = true (reemplaza)
- * - Si viene planCredits (override) -> setea directamente credits = planCredits (reemplaza)
- * - Si la llamada solo quiere actualizar status/metadata -> actualiza metadata sin tocar credits
- *
- * Idempotencia por invoiceId (appliedInvoiceIds).
+ *  handleCancelStripeSubscription
  */
-export async function changeUserPlanAndAddCredits(data: {
-  userId?: string;
-  email?: string;
-  priceId?: string | null;
-  planId?: string | null;
-  planCredits?: number | string | null;
-  subscriptionId?: string | null;
-  invoiceId?: string | null;
-  setCreditsFromPlan?: boolean; // lo mantenemos para compatibilidad, pero la lógica principal siempre reemplaza
-  subscriptionStatus?: string | null;
-  customerId?: string | null;
-}) {
-  const {
-    userId,
-    email,
-    priceId,
-    planId,
-    planCredits,
-    subscriptionId,
-    invoiceId,
-    // setCreditsFromPlan = false, // lo ignoramos para el comportamiento por defecto
-    subscriptionStatus = null,
-    customerId = null,
-  } = data;
+export const handleCancelStripeSubscription = async (
+  subscriptionId: string
+) => {
+  try {
+    const canceledSubscription = await stripe.subscriptions.cancel(
+      subscriptionId
+    );
 
-  // 1) obtener usuario
-  let user = null;
-  if (userId) user = await getSanityUserById(userId);
-  else if (email) user = await getSanityUser(email);
-  else throw new Error("Se requiere userId o email");
+    console.log(
+      "handleCancelStripeSubscription - Subscripcion cancelada: ",
+      canceledSubscription
+    );
 
-  if (!user) throw new Error("Usuario no encontrado");
+    return canceledSubscription;
+  } catch (error) {
+    console.error("Error al cancelar:", error);
+    return { error: "Error al cancelar la suscripción" };
+  }
+};
 
-  // 2) idempotencia por invoiceId
+/**
+ * Maneja checkout.session.completed
+ * - Recibe sessionObj (Stripe.Checkout.Session)
+ */
+export async function handleCheckoutSessionCompleted(
+  sessionObj: Stripe.Checkout.Session
+) {
+  console.log("Iniciando handleCheckoutSessionCompleted");
+
+  // intentamos sacar userId desde metadata
+  const metadataUserId = sessionObj.metadata?.userId ?? null;
+  const customerId =
+    typeof sessionObj.customer === "string"
+      ? sessionObj.customer
+      : sessionObj.customer?.id ?? null;
+  const subscriptionId =
+    typeof sessionObj.subscription === "string"
+      ? sessionObj.subscription
+      : sessionObj.subscription?.id ?? null;
+
+  // Si no recibimos subscription id, intentar obtener con la session (fetch)
+  let subscription: Stripe.Subscription | null = null;
+  if (subscriptionId) {
+    subscription = await stripe.subscriptions.retrieve(subscriptionId, {
+      expand: ["items.data.price.product"],
+    });
+  } else {
+    // A veces session incluye subscription como objeto; usarlo si existe
+    // en caso contrario abandonamos la parte de subscription.
+  }
+
+  // Obtener priceId principal (primer item)
+  const priceId =
+    subscription?.items?.data?.[0]?.price?.id ??
+    sessionObj.metadata?.resolvedPriceId ??
+    null;
+  const status = subscription?.status ?? "unknown";
+
+  // Buscar plan en Sanity por priceId
+  const plan = await getPaymentsPlanByProductId(priceId);
+
+  console.log("handleCheckoutSessionCompleted - plan: ", plan);
+
+  // Determinar userId: preferimos metadata.userId, si no buscar por customerId
+  let userDoc = null;
+  if (metadataUserId) {
+    userDoc = await getSanityUserById(metadataUserId);
+  } else if (customerId) {
+    userDoc = await getUserByCustomerId(customerId);
+  }
+
+  console.log("handleCheckoutSessionCompleted - userDoc: ", userDoc);
+
+  // Si encontramos usuario, aseguramos que no tenga el flag de plangratuito y actualizar con datos de la subscripción
+  const userId = userDoc?._id ?? null;
+  await setApplyingFreePlan(userId, false);
+
+  if (userDoc) {
+    await assignPlanToUser(userDoc._id, plan?._id ?? null, {
+      subscriptionId: subscriptionId ?? null,
+      subscriptionPriceId: priceId ?? null,
+      subscriptionStatus: status ?? null,
+      customerId: customerId ?? null,
+      setCreditsFromPlan: true,
+    });
+  } else {
+    console.warn(
+      "handleCheckoutSessionCompleted: no se encontró usuario para session",
+      {
+        metadataUserId,
+        customerId,
+      }
+    );
+  }
+
+  return;
+}
+
+/**
+ * Maneja invoice.paid
+ * - Cuando llega un invoice.paid se debe aplicar (una sola vez) los créditos del plan al usuario.
+ */
+export async function handleInvoicePaid(invoice: Stripe.Invoice) {
+  let subscriptionId: string | null = null;
+
+  // ⚡️ fallback para casos raros
   if (
-    invoiceId &&
-    Array.isArray(user.appliedInvoiceIds) &&
-    user.appliedInvoiceIds.includes(invoiceId)
+    !subscriptionId &&
+    (invoice as any).parent?.subscription_details?.subscription
   ) {
-    return { success: true, message: "Invoice ya aplicada previamente", user };
+    subscriptionId = (invoice as any).parent.subscription_details.subscription;
   }
 
-  // 3) resolver planDoc (por priceId o planId)
-  let planDoc = null;
-  if (priceId) planDoc = await getPaymentsPlanByPriceId(priceId);
-  if (!planDoc && planId) {
-    planDoc = await (async () =>
-      await getPaymentsPlanByPriceId(planId))().catch(() => null);
+  if (!subscriptionId) {
+    console.warn("invoice.paid sin subscriptionId", invoice.id);
+    return;
   }
 
-  // 4) Si la intención es SOLO actualizar status/metadata (sin tocar credits)
-  const wantsOnlyStatusUpdate =
-    !invoiceId && !priceId && !planCredits && !!subscriptionStatus;
+  // Recuperar la suscripción de Stripe
+  const subscription = await stripe.subscriptions.retrieve(subscriptionId, {
+    expand: ["items.data.price.product"],
+  });
 
-  if (wantsOnlyStatusUpdate) {
-    const existingPlanId = user.plan?._id ?? planId ?? "";
-    await assignPlanToUser(user._id, existingPlanId, {
-      subscriptionId: subscriptionId ?? null,
-      subscriptionPriceId: priceId ?? null,
-      subscriptionStatus: subscriptionStatus ?? null,
-      invoiceId: invoiceId ?? null,
-      setCreditsFromPlan: false,
-      customerId: customerId ?? null,
+  console.log("HandleInvoicePaid - subscription: ", subscription);
+
+  const customerId =
+    typeof subscription.customer === "string"
+      ? subscription.customer
+      : subscription.customer.id;
+
+  const priceId = subscription.items.data[0]?.price.id ?? null;
+  const status = subscription.status;
+
+  console.log(
+    "HandleInvoicePaid - Buscando usuario de sanity por customerId: ",
+    customerId
+  );
+
+  // --- Paso 1: buscar por customerId ---
+  let userDoc = await getUserByCustomerId(customerId);
+
+  // --- Paso 2: si no existe, buscar por email del metadata ---
+  if (!userDoc && subscription.metadata?.email) {
+    console.log(
+      "HandleInvoicePaid - fallback por email:",
+      subscription.metadata.email
+    );
+    userDoc = await getUserByEmail(subscription.metadata.email);
+  }
+
+  // --- Paso 3: si no existe, buscar por userId del metadata ---
+  if (!userDoc && subscription.metadata?.userId) {
+    console.log(
+      "HandleInvoicePaid - fallback por userId:",
+      subscription.metadata.userId
+    );
+    userDoc = await getSanityUserById(subscription.metadata.userId);
+  }
+
+  if (!userDoc) {
+    console.error(
+      "Usuario no encontrado para invoice",
+      invoice.id,
+      "customerId:",
+      customerId
+    );
+    return;
+  }
+
+  console.log("HandleInvoicePaid - userDoc encontrado:", userDoc);
+
+  // Buscar plan asociado al priceId
+  const plan = await getPaymentsPlanByProductId(priceId ?? "");
+  if (!plan) {
+    console.error("No plan found for priceId", priceId);
+    return;
+  }
+
+  // Asignar créditos y actualizar datos en Sanity
+  await assignPlanToUser(userDoc._id, plan._id, {
+    subscriptionId,
+    subscriptionPriceId: priceId,
+    subscriptionStatus: status,
+    setCreditsFromPlan: true,
+  });
+
+  console.log(
+    `✅ Créditos asignados al user ${userDoc._id} por invoice ${invoice.id}`
+  );
+}
+
+/**
+ * Maneja customer.subscription.updated / deleted
+ */
+export async function handleSubscriptionUpdated(
+  subscription: Stripe.Subscription,
+  eventType: string
+) {
+  const subscriptionId = subscription.id;
+  const status = subscription.status;
+  const customerId =
+    typeof subscription.customer === "string"
+      ? subscription.customer
+      : subscription.customer?.id ?? null;
+  const priceId = subscription.items?.data?.[0]?.price?.id ?? null;
+  const metadataUserId = subscription.metadata?.userId ?? null;
+
+  let userDoc = null;
+  if (metadataUserId) {
+    userDoc = await getSanityUserById(metadataUserId);
+  } else if (customerId) {
+    userDoc = await getUserByCustomerId(customerId);
+  }
+
+  if (!userDoc) {
+    console.warn("handleSubscriptionUpdated: no se encontró usuario", {
+      subscriptionId,
+      customerId,
+      metadataUserId,
     });
-
-    const updatedUser = await getSanityUserById(user._id);
-    return { success: true, user: updatedUser, message: "Updated status only" };
+    return;
   }
 
-  // 5) Si existe planDoc (resuelto por priceId/planId) -> REEMPLAZAMOS créditos desde plan
-  if (planDoc) {
-    const targetPlanId = planDoc._id;
-    await assignPlanToUser(user._id, targetPlanId, {
-      subscriptionId: subscriptionId ?? null,
-      subscriptionPriceId: priceId ?? null,
-      subscriptionStatus: subscriptionStatus ?? "active",
-      invoiceId: invoiceId ?? null,
-      setCreditsFromPlan: true, // REEMPLAZAR con credits del plan
-      customerId: customerId ?? null,
-    });
-
-    const updatedUser = await getSanityUserById(user._id);
-    return { success: true, user: updatedUser };
+  // Si el usuario está aplicando el plan gratuito, ignoramos los eventos de deleted
+  if (
+    userDoc.applyingFreePlan &&
+    eventType === "customer.subscription.deleted"
+  ) {
+    console.log(
+      "Evento cancelado ignorado por aplicación de plan gratuito",
+      userDoc._id
+    );
+    // podemos resetear el flag si queremos
+    await setApplyingFreePlan(userDoc._id, false);
+    return;
   }
 
-  // 6) Si no hay planDoc pero viene planCredits explícito -> REEMPLAZAMOS credits al valor indicado
-  const cp = Number(planCredits ?? 0);
-  if (!isNaN(cp) && cp > 0) {
-    const amount = Math.floor(cp);
-    const { client } = await import("@/sanity/lib/client");
+  // Actualizar referencia del plan si priceId cambiò (buscar plan por priceId)
+  const plan = await getPaymentsPlanByProductId(priceId);
 
-    const patch = client
-      .patch(user._id)
-      .setIfMissing({ appliedInvoiceIds: [] });
+  await assignPlanToUser(userDoc._id, plan?._id ?? null, {
+    subscriptionId,
+    subscriptionPriceId: priceId ?? null,
+    subscriptionStatus: status ?? null,
+    customerId: customerId ?? null,
+    setCreditsFromPlan: false, // no setear créditos solo por actualizar
+  });
 
-    // set credits al valor exacto
-    patch.set({ credits: amount });
-
-    // metadata asociada
-    if (subscriptionId) patch.set({ subscriptionId });
-    if (priceId) patch.set({ subscriptionPriceId: priceId });
-    if (subscriptionStatus) patch.set({ subscriptionStatus });
-    if (customerId) patch.set({ customerId });
-
-    if (invoiceId) patch.append("appliedInvoiceIds", [invoiceId]);
-
-    const updated = await patch.commit({ autoGenerateArrayKeys: true });
-    return { success: true, user: updated };
-  }
-
-  // 7) Si llegamos acá, no tuvimos forma de determinar qué credits setear -> error
-  throw new Error(
-    "No se pudo determinar créditos a aplicar (ni plan asociado ni planCredits)."
+  console.log(
+    "Subscription updated applied to user:",
+    userDoc._id,
+    "status:",
+    status
   );
 }

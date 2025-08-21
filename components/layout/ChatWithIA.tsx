@@ -11,7 +11,7 @@ import {
   FormLabel,
   FormControl,
 } from "@/components/ui/form";
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { SpeechToText } from "../speechToText";
 import { chatSchema, ChatSchemaType } from "@/lib/zodSchemas/chatSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -19,7 +19,7 @@ import { ApiResponse, ChatType } from "@/types/chatTypes";
 import { chatAction2, fetchChatMessages } from "@/actions/chatActions";
 import { toast } from "sonner";
 import { useGlobalContext } from "@/provider/GlobalContext";
-import { ScrollArea } from "../ui/scroll-area";
+import { useChatScroll } from "@/hook/use-chat-scroll";
 
 export const ChatWithIA = ({
   chat,
@@ -36,8 +36,8 @@ export const ChatWithIA = ({
   >([]);
   const [messagesLoaded, setMessagesLoaded] = useState(false);
 
-  // Ref al div interno que hace scroll
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  // Use the chat scroll hook
+  const { containerRef, scrollToBottom } = useChatScroll();
 
   // Fetch de mensajes al cargar el chat
   useEffect(() => {
@@ -56,16 +56,12 @@ export const ChatWithIA = ({
     fetchMessages();
   }, [chatId]);
 
-  // Scroll al final después de que los mensajes iniciales hayan cargado
+  // Scroll to bottom when messages change or are loaded
   useEffect(() => {
-    if (!messagesLoaded) return;
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollTo({
-        top: scrollContainerRef.current.scrollHeight,
-        behavior: "smooth",
-      });
+    if (messagesLoaded) {
+      scrollToBottom();
     }
-  }, [chatHistory, messagesLoaded]);
+  }, [chatHistory, messagesLoaded, scrollToBottom]);
 
   const defaultValues: ChatSchemaType = { mensaje: "" };
   const form = useForm<ChatSchemaType>({
@@ -84,6 +80,9 @@ export const ChatWithIA = ({
     // Agregamos mensaje del usuario
     setChatHistory((prev) => [...prev, { role: "user", content: mensaje }]);
 
+    // Scroll to bottom immediately after adding user message
+    setTimeout(() => scrollToBottom(), 100);
+
     startTransition(async () => {
       try {
         const result = await chatAction2(
@@ -97,6 +96,9 @@ export const ChatWithIA = ({
 
         resetForm();
         handleUpdateChatDate(chatId);
+
+        // Scroll to bottom after AI response
+        setTimeout(() => scrollToBottom(), 100);
       } catch (err: Error | unknown) {
         if (err instanceof Error) toast.error(err.message);
         else toast.error("Error al enviar el mensaje");
@@ -113,45 +115,53 @@ export const ChatWithIA = ({
         </p>
       </div>
 
-      {/* Chat history */}
-      <ScrollArea className="h-[500px] px-4">
-        <div ref={scrollContainerRef} className="flex flex-col gap-4">
-          {chatHistory.map((message, index) => {
-            if (message.role === "user") {
+      {/* Chat history - Solo mostrar si hay mensajes o está pendiente */}
+      {(chatHistory.length > 0 || isPending) && (
+        <div
+          ref={containerRef}
+          className="h-[500px] overflow-y-auto px-4 bg-background border rounded-lg"
+        >
+          <div className="flex flex-col gap-4 py-4">
+            {chatHistory.map((message, index) => {
+              if (message.role === "user") {
+                return (
+                  <div
+                    key={index}
+                    className="flex flex-col gap-2 items-end justify-end ml-16 animate-in fade-in slide-in-from-bottom-4 duration-300"
+                  >
+                    <p className="font-medium text-muted-foreground">Tú</p>
+                    <p className="text-sm bg-muted p-3 rounded-lg rounded-tr-none">
+                      {message.content}
+                    </p>
+                  </div>
+                );
+              }
+
               return (
                 <div
                   key={index}
-                  className="flex flex-col gap-2 items-end justify-end ml-16"
+                  className="flex flex-col gap-2 mr-16 animate-in fade-in slide-in-from-bottom-4 duration-300"
                 >
-                  <p className="font-medium text-muted-foreground">Tú</p>
-                  <p className="text-sm bg-muted p-3 rounded-lg rounded-tr-none">
-                    {message.content}
-                  </p>
+                  <p className="font-medium text-muted-foreground">Profiler</p>
+                  <div
+                    className="text-sm p-3 bg-muted rounded-lg rounded-tl-none"
+                    dangerouslySetInnerHTML={{
+                      __html: formatResponse(message.content),
+                    }}
+                  />
                 </div>
               );
-            }
+            })}
 
-            return (
-              <div key={index} className="flex flex-col gap-2 mr-16">
+            {isPending && (
+              <div className="flex flex-col gap-2 animate-in fade-in slide-in-from-bottom-4 duration-300">
                 <p className="font-medium text-muted-foreground">Profiler</p>
-                <div
-                  className="text-sm p-3 bg-muted rounded-lg rounded-tl-none"
-                  dangerouslySetInnerHTML={{
-                    __html: formatResponse(message.content),
-                  }}
-                />
+                <p className="text-sm p-2 rounded-md animate-pulse">...</p>
               </div>
-            );
-          })}
-
-          {isPending && (
-            <div className="flex flex-col gap-2">
-              <p className="font-medium text-muted-foreground">Profiler</p>
-              <p className="text-sm p-2 rounded-md animate-pulse">...</p>
-            </div>
-          )}
+            )}
+          </div>
         </div>
-      </ScrollArea>
+      )}
 
       {/* Formulario */}
       <Form {...form}>

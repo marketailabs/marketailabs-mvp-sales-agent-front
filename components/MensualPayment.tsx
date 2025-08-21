@@ -7,16 +7,8 @@ import {
 } from "@/components/ui/accordion";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "./ui/alert-dialog";
+import { FreePlanAlert } from "./FreePlanAlert";
+import { useGlobalContext } from "@/provider/GlobalContext";
 
 // Accordion (mobile)s
 export const MensualPayment = ({
@@ -28,26 +20,33 @@ export const MensualPayment = ({
   accordion: boolean;
   userData: SanityUser;
 }) => {
+  const { getSanityUser } = useGlobalContext();
   const [isPending, startTransition] = useTransition();
   const [openDialog, setOpenDialog] = useState(false);
 
-  const { credits, price, name, benefits, priceId, description } = payment;
+  const { credits, price, name, benefits, price_id, description } = payment;
 
   // Manejar el pago de créditos
   const handleAssignFreePlan = async () => {
     startTransition(async () => {
       try {
-        const freePlanId = "9080a077-b426-478d-9e08-1eeb5fe9ca07";
-        await fetch("/api/assign-plan", {
+        const res = await fetch("/api/assign-free", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             userId: userData._id,
-            planId: freePlanId,
-            setCreditsFromPlan: false,
           }),
         });
-        toast.success("Ahora estás en el Plan Gratuito");
+
+        if (!res.ok) {
+          throw new Error("No se pudo actualizar al plan gratuito.");
+        }
+
+        await getSanityUser();
+
+        toast.success("Ahora estás en el Plan Gratuito", {
+          description: "Los cambios pueden tardar en aplicarse",
+        });
       } catch (err) {
         console.error(err);
         toast.error("No se pudo actualizar al plan gratuito.");
@@ -57,7 +56,7 @@ export const MensualPayment = ({
 
   const handlePaySubscription = async () => {
     // Si es plan gratuito, abrimos alert-dialog
-    if (!priceId) {
+    if (!price_id) {
       setOpenDialog(true);
       return;
     }
@@ -66,14 +65,12 @@ export const MensualPayment = ({
     startTransition(async () => {
       try {
         const body = {
-          name,
-          description,
+          price_id,
           planCredits: credits,
           userData: {
             email: userData.email,
             userId: userData._id,
           },
-          priceId,
         };
 
         const res = await fetch("/api/checkout", {
@@ -93,46 +90,21 @@ export const MensualPayment = ({
     });
   };
 
-  const AlertFreePlan = () => {
-    return (
-      <AlertDialog open={openDialog} onOpenChange={setOpenDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              Confirmar cambio a plan gratuito
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              Estás a punto de cambiar al Plan Gratuito. Esto reemplazará tu
-              plan actual y créditos. ¿Deseas continuar?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                setOpenDialog(false);
-                handleAssignFreePlan();
-              }}
-            >
-              Confirmar
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    );
-  };
-
   if (accordion) {
     return (
       <AccordionItem value={payment._id} className="border rounded-xl mt-4">
         <AccordionTrigger className="p-4 flex justify-between items-center text-base font-medium">
-          <span>{name}</span>
-          {priceId && (
+          <p className="w-full">{name}</p>
+
+          {price_id && (
             <span className="w-full text-right">MXN {price}/mes</span>
           )}
         </AccordionTrigger>
         <AccordionContent className="p-4 pt-0 text-sm text-muted-foreground space-y-2">
-          <p>{priceId && <>{credits} créditos / mes</>}</p>
+          <p>{credits} créditos / mes</p>
+
+          <p className="text-base text-muted-foreground">{description}</p>
+
           <ul className="list-disc pl-5 space-y-1">
             {benefits && benefits.map((b) => <li key={b}>{b}</li>)}
           </ul>
@@ -142,14 +114,22 @@ export const MensualPayment = ({
               disabled={isPending || payment._id === userData.plan?._id}
               onClick={handlePaySubscription}
             >
-              {payment._id === userData.plan?._id
+              {isPending
+                ? "Actualizando..."
+                : payment._id === userData.plan?._id
                 ? "Actualmente activo"
                 : `Elegir ${name}`}
             </Button>
           </div>
 
           {/* AlertDialog solo para plan gratuito */}
-          {!priceId && <AlertFreePlan />}
+          {!price_id && (
+            <FreePlanAlert
+              handleFreePlan={handleAssignFreePlan}
+              openDialog={openDialog}
+              setOpenDialog={setOpenDialog}
+            />
+          )}
         </AccordionContent>
       </AccordionItem>
     );
@@ -161,9 +141,9 @@ export const MensualPayment = ({
       <div className="mb-4 space-y-1">
         <p className="text-xl font-semibold">{name}</p>
         <p className="text-sm text-muted-foreground">
-          {priceId && <>{credits} créditos / mes</>}
+          {credits} créditos / mes
         </p>
-        {priceId && (
+        {price_id && (
           <p className="text-base font-medium mt-2">MXN {price}/mes</p>
         )}
       </div>
@@ -179,13 +159,21 @@ export const MensualPayment = ({
         disabled={isPending || payment._id === userData.plan?._id}
         onClick={handlePaySubscription}
       >
-        {payment._id === userData.plan?._id
+        {isPending
+          ? "Actualizando..."
+          : payment._id === userData.plan?._id
           ? "Actualmente activo"
           : `Elegir ${name}`}
       </Button>
 
       {/* AlertDialog solo para plan gratuito */}
-      {!priceId && <AlertFreePlan />}
+      {!price_id && (
+        <FreePlanAlert
+          handleFreePlan={handleAssignFreePlan}
+          openDialog={openDialog}
+          setOpenDialog={setOpenDialog}
+        />
+      )}
     </div>
   );
 };

@@ -6,7 +6,7 @@ import Link from "next/link";
 
 export default function CancelPage() {
   return (
-    <MainContainer>
+    <MainContainer className="pt-36 md:pt-0">
       <div className="min-h-full flex flex-col items-center justify-center">
         <Card className="p-6">
           <CardHeader>

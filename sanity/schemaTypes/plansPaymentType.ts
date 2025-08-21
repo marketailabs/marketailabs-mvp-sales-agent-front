@@ -33,7 +33,7 @@ export const plansPaymentType = defineType({
       },
     }),
     defineField({
-      name: "priceId",
+      name: "price_id",
       title: "ID del Precio en Stripe (Solo para subscripciones)",
       type: "string",
     }),

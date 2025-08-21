@@ -16,7 +16,8 @@ function generateToken() {
 
 // ID del plan gratuito (el que ya tenés)
 const FREE_PLAN_ID =
-  process.env.FREE_PLAN_ID || "9080a077-b426-478d-9e08-1eeb5fe9ca07";
+  process.env.NEXT_PUBLIC_FREE_PLAN_ID ||
+  "9080a077-b426-478d-9e08-1eeb5fe9ca07";
 
 // Crea un usuario en Sanity
 export async function createSanityUser(user: {
@@ -59,6 +60,8 @@ export async function createSanityUser(user: {
       current: generateToken(),
     },
     credits: creditsFromPlan,
+    lastCreditsReset: new Date().toISOString(),
+    applyingFreePlan: false,
     plan: { _type: "reference", _ref: FREE_PLAN_ID },
   };
 

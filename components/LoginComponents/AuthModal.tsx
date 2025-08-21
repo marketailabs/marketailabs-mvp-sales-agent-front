@@ -33,10 +33,10 @@ export const AuthModal = () => {
         <Button
           variant={"ghost"}
           className={cn(
-            "justify-start px-2 transition-all duration-300",
+            "px-2 h-14 w-full justify-start transition-all duration-300",
             isSidebarOpen ? "px-3" : "px-2"
           )}
-          size={isSidebarOpen ? "default" : "icon"}
+          size={isSidebarOpen ? "lg" : "icon"}
         >
           <LogIn className="size-5" />
           <span

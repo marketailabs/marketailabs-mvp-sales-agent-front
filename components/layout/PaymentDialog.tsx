@@ -33,7 +33,8 @@ export const PaymentDialog = () => {
             Actualizar plan
           </DialogTitle>
           <p className="text-sm text-muted-foreground mt-1">
-            Elegí una opción para continuar
+            Elige una opción para continuar. Los créditos no son acumulables y
+            pueden ser utilizados dentro del periodo del mes corriente.
           </p>
         </DialogHeader>
 

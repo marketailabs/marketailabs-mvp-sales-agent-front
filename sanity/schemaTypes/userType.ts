@@ -58,7 +58,28 @@ export const userType = defineType({
       to: [{ type: "plansPayment" }],
       validation: (rule) => rule.required(),
     }),
+
+    // Campo para setear el ultimo reseteo de creditos
+    defineField({
+      name: "lastCreditsReset",
+      title: "Último reseteo de créditos",
+      type: "datetime",
+    }),
+    // Campo para setear si se esta aplicando el plan gratuito
+    defineField({
+      name: "applyingFreePlan",
+      title: "Aplicando plan gratuito",
+      type: "boolean",
+      initialValue: false,
+    }),
+
     // En caso de que el usuario tenga plan se rellenaran estos campos
+
+    defineField({
+      name: "customerId",
+      title: "Customer ID",
+      type: "string",
+    }),
 
     defineField({
       name: "subscriptionId",

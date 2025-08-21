@@ -45,7 +45,7 @@ export type PaymentsPlan = {
   typeOfPlan: string;
   benefits: string[];
   credits: number;
-  priceId: string;
+  price_id: string;
 };
 
 export type SanityPlan = {

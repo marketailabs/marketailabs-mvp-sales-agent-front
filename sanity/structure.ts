@@ -1,4 +1,10 @@
-import { Users, Home, LayoutTemplate, CreditCard } from "lucide-react";
+import {
+  Users,
+  Home,
+  LayoutTemplate,
+  CreditCard,
+  FileText,
+} from "lucide-react";
 import type { StructureResolver } from "sanity/structure";
 
 export const structure: StructureResolver = (S) =>
@@ -25,7 +31,6 @@ export const structure: StructureResolver = (S) =>
                 .title("Formularios")
                 .schemaType("form")
                 .child(S.documentTypeList("form").title("Formularios")),
-              // Form inputs
               S.listItem()
                 .title("Campos de Entrada")
                 .schemaType("input")
@@ -40,6 +45,14 @@ export const structure: StructureResolver = (S) =>
         .title("Planes de Pago")
         .icon(CreditCard)
         .child(S.documentTypeList("plansPayment").title("Planes de Pago")),
+
+      S.divider(),
+
+      // Legal Section
+      S.listItem()
+        .title("Legal")
+        .icon(FileText)
+        .child(S.documentTypeList("legalSection").title("Secciones Legales")),
 
       S.divider(),
 
