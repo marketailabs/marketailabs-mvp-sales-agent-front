@@ -2,6 +2,10 @@ import { NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
 import { getSanityUserById } from "@/sanity/lib/User/UserCredits";
 import baseUrl from "@/lib/baseUrl";
+import {
+  setApplyingChangePlan,
+  setApplyingFreePlan,
+} from "@/sanity/lib/Payments/getPaymentsPlan";
 
 export async function POST(req: Request) {
   try {
@@ -31,6 +35,10 @@ export async function POST(req: Request) {
     } catch (err) {
       console.warn("No se pudo obtener customerId de Sanity:", err);
     }
+
+    // Dar el flag que se esta haciendo el cambio de plan y por si acaso quitar el flag de free
+    await setApplyingFreePlan(userId, false);
+    await setApplyingChangePlan(userId, true);
 
     // crear sesión de checkout
     const session = await stripe.checkout.sessions.create({

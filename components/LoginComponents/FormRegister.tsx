@@ -31,7 +31,7 @@ export const FormRegister = () => {
 
   // Valores por defecto del formulario
   const form = useForm<z.infer<typeof registerSchema>>({
-    resolver: zodResolver(registerSchema as any),
+    resolver: zodResolver(registerSchema),
     defaultValues: {
       name: "",
       email: "",

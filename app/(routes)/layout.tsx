@@ -1,3 +1,4 @@
+import { AlertPaymentWrapper } from "@/components/layout/AlertPaymentWrapper";
 import { Footer } from "@/components/layout/Footer";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Toaster } from "@/components/ui/sonner";
@@ -16,6 +17,8 @@ const HomeLayout = ({ children }: { children: React.ReactNode }) => {
           <Footer />
         </div>
       </div>
+
+      <AlertPaymentWrapper />
 
       <SanityLive />
       <Toaster />

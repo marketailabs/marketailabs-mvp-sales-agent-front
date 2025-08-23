@@ -22,6 +22,7 @@ export async function getSanityUser(email: string) {
       plan->{_id, name, price, description, typeOfPlan, benefits, credits},
       lastCreditsReset,
       applyingFreePlan,
+      changePlan,
       subscriptionId,
       subscriptionPriceId,
       subscriptionStatus,
@@ -46,6 +47,7 @@ export async function getSanityUserById(id: string) {
       plan->{_id, name, price, description, typeOfPlan, benefits, credits},
       lastCreditsReset,
       applyingFreePlan,
+      changePlan,
       subscriptionId,
       subscriptionPriceId,
       subscriptionStatus,
@@ -62,7 +64,7 @@ export async function getSanityUserById(id: string) {
 export async function getUserByCustomerId(customerId: string) {
   if (!customerId) return null;
   const user = await client.fetch(
-    `*[_type == "user" && customerId == $customerId][0]{_id, email, customerId, subscriptionId, appliedInvoiceIds, applyingFreePlan}`,
+    `*[_type == "user" && customerId == $customerId][0]{_id, email, customerId, subscriptionId, appliedInvoiceIds, applyingFreePlan, changePlan}`,
     { customerId }
   );
   return user || null;

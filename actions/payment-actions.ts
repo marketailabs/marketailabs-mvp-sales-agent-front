@@ -7,9 +7,11 @@ import {
   getUserByCustomerId,
 } from "@/sanity/lib/User/UserCredits";
 import {
+  assignFreePlanToUser,
   assignPlanToUser,
   getPaymentsPlan,
   getPaymentsPlanByProductId,
+  setApplyingChangePlan,
   setApplyingFreePlan,
 } from "@/sanity/lib/Payments/getPaymentsPlan";
 import { getUserByEmail } from "@/sanity/lib/User/getUserByEmail";
@@ -40,7 +42,7 @@ export const handleCancelStripeSubscription = async (
 
     console.log(
       "handleCancelStripeSubscription - Subscripcion cancelada: ",
-      canceledSubscription
+      canceledSubscription.id
     );
 
     return canceledSubscription;
@@ -106,6 +108,7 @@ export async function handleCheckoutSessionCompleted(
   // Si encontramos usuario, aseguramos que no tenga el flag de plangratuito y actualizar con datos de la subscripción
   const userId = userDoc?._id ?? null;
   await setApplyingFreePlan(userId, false);
+  await setApplyingChangePlan(userId, false);
 
   if (userDoc) {
     await assignPlanToUser(userDoc._id, plan?._id ?? null, {
@@ -221,12 +224,141 @@ export async function handleInvoicePaid(invoice: Stripe.Invoice) {
   );
 }
 
+export async function handleInvoiceFailedPaid(invoice: Stripe.Invoice) {
+  let subscriptionId: string | null = null;
+
+  // ⚡️ fallback para casos raros
+  if (
+    !subscriptionId &&
+    (invoice as any).parent?.subscription_details?.subscription
+  ) {
+    subscriptionId = (invoice as any).parent.subscription_details.subscription;
+  }
+
+  if (!subscriptionId) {
+    console.warn("invoice.paid.failed sin subscriptionId", invoice.id);
+    return;
+  }
+
+  // Recuperar la suscripción de Stripe
+  const subscription = await stripe.subscriptions.retrieve(subscriptionId, {
+    expand: ["items.data.price.product"],
+  });
+
+  console.log("handleInvoiceFailedPaid - subscription: ", subscription);
+
+  const customerId =
+    typeof subscription.customer === "string"
+      ? subscription.customer
+      : subscription.customer.id;
+
+  const priceId = subscription.items.data[0]?.price.id ?? null;
+  const status = subscription.status;
+
+  console.log(
+    "handleInvoiceFailedPaid - Buscando usuario de sanity por customerId: ",
+    customerId
+  );
+
+  // --- Paso 1: buscar por customerId ---
+  let userDoc = await getUserByCustomerId(customerId);
+
+  // --- Paso 2: si no existe, buscar por email del metadata ---
+  if (!userDoc && subscription.metadata?.email) {
+    console.log(
+      "handleInvoiceFailedPaid - fallback por email:",
+      subscription.metadata.email
+    );
+    userDoc = await getUserByEmail(subscription.metadata.email);
+  }
+
+  // --- Paso 3: si no existe, buscar por userId del metadata ---
+  if (!userDoc && subscription.metadata?.userId) {
+    console.log(
+      "handleInvoiceFailedPaid - fallback por userId:",
+      subscription.metadata.userId
+    );
+    userDoc = await getSanityUserById(subscription.metadata.userId);
+  }
+
+  if (!userDoc) {
+    console.error(
+      "Usuario no encontrado para invoice",
+      invoice.id,
+      "customerId:",
+      customerId
+    );
+    return;
+  }
+
+  console.log("handleInvoiceFailedPaid - userDoc encontrado:", userDoc);
+
+  // Buscar plan asociado al priceId
+  const plan = await getPaymentsPlanByProductId(priceId ?? "");
+  if (!plan) {
+    console.error("No plan found for priceId", priceId);
+    return;
+  }
+
+  // Asignar créditos y actualizar datos en Sanity
+  await assignPlanToUser(userDoc._id, plan._id, {
+    subscriptionId,
+    subscriptionPriceId: priceId,
+    subscriptionStatus: status,
+    setCreditsFromPlan: false,
+  });
+
+  console.log(
+    `Pago no acreditado por el usuario ${userDoc._id} por invoice ${invoice.id}`
+  );
+}
+
+/**
+ *  Maneja customer.subscription.deleted asi podemos resolver el caso de que el usuario cancele su suscripción
+ *  y no se haya aplicado el cambio en Sanity
+ */
+export async function handleSubscriptionDeleted(
+  subscription: Stripe.Subscription
+) {
+  const customerId =
+    typeof subscription.customer === "string"
+      ? subscription.customer
+      : subscription.customer?.id ?? null;
+
+  const metadataUserId = subscription.metadata?.userId ?? null;
+
+  let userDoc = null;
+  if (metadataUserId) {
+    userDoc = await getSanityUserById(metadataUserId);
+  } else if (customerId) {
+    userDoc = await getUserByCustomerId(customerId);
+  }
+
+  if (!userDoc) {
+    console.warn("handleSubscriptionDeleted: no se encontró usuario");
+    return;
+  }
+
+  if (userDoc.applyingFreePlan) {
+    console.log(
+      "Ignorando customer.subscription.deleted por free plan",
+      userDoc._id
+    );
+    await setApplyingFreePlan(userDoc._id, false);
+    return;
+  }
+
+  // si no hay flag, ahí sí aplicás lógica de borrado real
+  await assignFreePlanToUser(userDoc._id);
+
+  console.log("Subscription deleted applied to user:", userDoc._id);
+}
+
 /**
  * Maneja customer.subscription.updated / deleted
  */
 export async function handleSubscriptionUpdated(
-  subscription: Stripe.Subscription,
-  eventType: string
+  subscription: Stripe.Subscription
 ) {
   const subscriptionId = subscription.id;
   const status = subscription.status;
@@ -253,20 +385,6 @@ export async function handleSubscriptionUpdated(
     return;
   }
 
-  // Si el usuario está aplicando el plan gratuito, ignoramos los eventos de deleted
-  if (
-    userDoc.applyingFreePlan &&
-    eventType === "customer.subscription.deleted"
-  ) {
-    console.log(
-      "Evento cancelado ignorado por aplicación de plan gratuito",
-      userDoc._id
-    );
-    // podemos resetear el flag si queremos
-    await setApplyingFreePlan(userDoc._id, false);
-    return;
-  }
-
   // Actualizar referencia del plan si priceId cambiò (buscar plan por priceId)
   const plan = await getPaymentsPlanByProductId(priceId);
 
@@ -275,7 +393,7 @@ export async function handleSubscriptionUpdated(
     subscriptionPriceId: priceId ?? null,
     subscriptionStatus: status ?? null,
     customerId: customerId ?? null,
-    setCreditsFromPlan: false, // no setear créditos solo por actualizar
+    setCreditsFromPlan: false,
   });
 
   console.log(

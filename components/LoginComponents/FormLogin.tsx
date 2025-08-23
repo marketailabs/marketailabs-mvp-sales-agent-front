@@ -32,7 +32,7 @@ export const FormLogin = () => {
 
   // Valores por defecto del formulario
   const form = useForm<z.infer<typeof loginSchema>>({
-    resolver: zodResolver(loginSchema as any),
+    resolver: zodResolver(loginSchema),
     defaultValues: {
       email: "",
       password: "",

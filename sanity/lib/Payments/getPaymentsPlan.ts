@@ -114,9 +114,7 @@ export async function assignPlanToUser(
  * @returns  documento actualizado
  */
 export async function assignFreePlanToUser(userId: string) {
-  const freePlanId =
-    process.env.NEXT_PUBLIC_FREE_PLAN_ID ||
-    "9080a077-b426-478d-9e08-1eeb5fe9ca07";
+  const freePlanId = process.env.NEXT_PUBLIC_FREE_PLAN_ID;
   if (!freePlanId) return null;
 
   const freePlanDoc = await client.fetch(
@@ -145,15 +143,46 @@ export async function assignFreePlanToUser(userId: string) {
  * Setea el valor de applyingFreePlan para un usuario
  * @param userId _id del usuario
  * @param value booleano para aplicar o quitar el plan gratuito
- * @returns usuario actualizado
+ * @returns { success: boolean, user?: any, error?: string }
  */
 export async function setApplyingFreePlan(userId: string, value: boolean) {
-  if (!userId) throw new Error("User ID is required");
+  if (!userId) {
+    return { success: false, error: "User ID is required" };
+  }
 
-  const updatedUser = await client
-    .patch(userId)
-    .set({ applyingFreePlan: value })
-    .commit({ autoGenerateArrayKeys: true });
+  try {
+    const updatedUser = await client
+      .patch(userId)
+      .set({ applyingFreePlan: value })
+      .commit({ autoGenerateArrayKeys: true });
 
-  return updatedUser;
+    return { success: true, user: updatedUser };
+  } catch (err: any) {
+    console.error("Error en setApplyingFreePlan:", err);
+    return { success: false, error: err?.message ?? "Error updating user" };
+  }
+}
+
+/**
+ * Setea el valor de changePlan para un usuario
+ * @param userId _id del usuario
+ * @param value booleano para aplicar o quitar el plan gratuito
+ * @returns { success: boolean, user?: any, error?: string }
+ */
+export async function setApplyingChangePlan(userId: string, value: boolean) {
+  if (!userId) {
+    return { success: false, error: "User ID is required" };
+  }
+
+  try {
+    const updatedUser = await client
+      .patch(userId)
+      .set({ changePlan: value })
+      .commit({ autoGenerateArrayKeys: true });
+
+    return { success: true, user: updatedUser };
+  } catch (err: any) {
+    console.error("Error en setApplyingChangePlan:", err);
+    return { success: false, error: err?.message ?? "Error updating user" };
+  }
 }

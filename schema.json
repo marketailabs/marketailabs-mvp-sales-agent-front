@@ -606,6 +606,13 @@
         },
         "optional": true
       },
+      "changePlan": {
+        "type": "objectAttribute",
+        "value": {
+          "type": "boolean"
+        },
+        "optional": true
+      },
       "customerId": {
         "type": "objectAttribute",
         "value": {

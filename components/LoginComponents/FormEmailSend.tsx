@@ -25,7 +25,7 @@ export const FormEmailSend = () => {
 
   // Valores por defecto del formulario
   const form = useForm<z.infer<typeof forgotPasswordSchema>>({
-    resolver: zodResolver(forgotPasswordSchema as any),
+    resolver: zodResolver(forgotPasswordSchema),
     defaultValues: {
       email: "",
     },

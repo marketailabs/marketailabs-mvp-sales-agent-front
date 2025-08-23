@@ -104,6 +104,7 @@ export type User = {
   };
   lastCreditsReset?: string;
   applyingFreePlan?: boolean;
+  changePlan?: boolean;
   customerId?: string;
   subscriptionId?: string;
   subscriptionPriceId?: string;
@@ -338,6 +339,7 @@ export type GetUserByEmailQueryResult = {
   };
   lastCreditsReset?: string;
   applyingFreePlan?: boolean;
+  changePlan?: boolean;
   customerId?: string;
   subscriptionId?: string;
   subscriptionPriceId?: string;

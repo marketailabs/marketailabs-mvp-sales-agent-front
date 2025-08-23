@@ -88,6 +88,12 @@
         "title": "Aplicando plan gratuito"
       },
       {
+        "initialValue": false,
+        "name": "changePlan",
+        "type": "boolean",
+        "title": "Aplicando Cambio de Plan"
+      },
+      {
         "name": "customerId",
         "type": "string",
         "title": "Customer ID"

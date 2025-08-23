@@ -8,7 +8,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
-import { AudioLines, Mic, X } from "lucide-react";
+import { Mic, X } from "lucide-react";
 import { toast } from "sonner";
 
 type SpeechToTextProps = {

@@ -65,10 +65,17 @@ export const userType = defineType({
       title: "Último reseteo de créditos",
       type: "datetime",
     }),
+
     // Campo para setear si se esta aplicando el plan gratuito
     defineField({
       name: "applyingFreePlan",
       title: "Aplicando plan gratuito",
+      type: "boolean",
+      initialValue: false,
+    }),
+    defineField({
+      name: "changePlan",
+      title: "Aplicando Cambio de Plan",
       type: "boolean",
       initialValue: false,
     }),

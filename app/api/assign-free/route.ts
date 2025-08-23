@@ -17,23 +17,33 @@ export async function POST(request: NextRequest) {
     // obtener el usuario
     const user = await getSanityUserById(userId);
 
-    // activamos el flag para evitar que el webhook sobrescriba
-    await setApplyingFreePlan(userId, true);
+    // activar el flag
+    const flagResult = await setApplyingFreePlan(userId, true);
 
-    // cancelar el plan actual
+    // si no se pudo setear correctamente, cortar el flujo
+    if (!flagResult.success) {
+      return NextResponse.json(
+        {
+          error: "No se pudo setear applyingFreePlan",
+          detail: flagResult.error,
+        },
+        { status: 500 }
+      );
+    }
+
+    // Continuamos con la cancelación
     const cancelResult = await handleCancelStripeSubscription(
       user.subscriptionId
     );
 
-    // si falló, no seguimos
     if ("error" in cancelResult) {
       return NextResponse.json({ error: cancelResult.error }, { status: 500 });
     }
 
-    // recién acá asignamos el plan gratuito
+    // asignar plan gratuito
     const updatedUser = await assignFreePlanToUser(userId);
 
-    return NextResponse.json({ user: updatedUser });
+    return NextResponse.json({ success: true, user: updatedUser });
   } catch (err) {
     console.error("Error assigning plan:", err);
     return NextResponse.json(

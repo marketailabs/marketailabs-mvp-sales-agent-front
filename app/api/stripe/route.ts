@@ -5,9 +5,14 @@ import {
   handleCancelStripeSubscription,
   handleCheckoutSessionCompleted,
   handleInvoicePaid,
+  handleSubscriptionDeleted,
   handleSubscriptionUpdated,
 } from "@/actions/payment-actions";
-import { getSanityUserById } from "@/sanity/lib/User/UserCredits";
+import {
+  getSanityUserById,
+  getUserByCustomerId,
+} from "@/sanity/lib/User/UserCredits";
+import { getUserByEmail } from "@/sanity/lib/User/getUserByEmail";
 
 export async function POST(req: Request) {
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -69,13 +74,56 @@ export async function POST(req: Request) {
         await handleInvoicePaid(invoice);
         break;
       }
-      case "customer.subscription.updated":
-      case "customer.subscription.created":
       case "customer.subscription.deleted": {
         const subscription = event.data.object as Stripe.Subscription;
-        await handleSubscriptionUpdated(subscription, event.type);
+
+        const customerId =
+          typeof subscription.customer === "string"
+            ? subscription.customer
+            : subscription.customer?.id ?? null;
+
+        let user = null;
+
+        if (subscription.metadata.userId) {
+          user = await getSanityUserById(subscription.metadata.userId);
+        }
+
+        if (!user && subscription.customer) {
+          user = await getUserByCustomerId(customerId);
+        }
+
+        if (!user && subscription.metadata.email) {
+          user = await getUserByEmail(subscription.metadata.email);
+        }
+
+        if (!user) {
+          throw new Error("No user found");
+        }
+
+        if (user.applyingFreePlan === true) {
+          console.log(
+            "Ignorando customer.subscription.deleted por free plan",
+            user.email,
+            subscription.id
+          );
+        } else if (user.changePlan === true) {
+          console.log(
+            "Ignorando customer.subscription.deleted por cambio de plan",
+            user.email,
+            subscription.id
+          );
+        } else {
+          await handleSubscriptionDeleted(subscription);
+        }
         break;
       }
+      case "customer.subscription.updated":
+      case "customer.subscription.created": {
+        const subscription = event.data.object as Stripe.Subscription;
+        await handleSubscriptionUpdated(subscription);
+        break;
+      }
+
       // opcional: manejar invoice.payment_failed, customer.updated, etc
       default:
         console.log("Unhandled event type:", event.type);

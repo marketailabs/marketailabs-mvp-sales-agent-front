@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "createdAt": "2025-08-21T15:46:21.331Z",
+  "createdAt": "2025-08-23T07:20:57.783Z",
   "workspaces": [
     {
       "name": "market-ai-labs-studio",
@@ -12,7 +12,7 @@
       "mediaLibrary": {
         "enabled": false
       },
-      "schema": "0c7541b7.create-schema.json",
+      "schema": "3489d982.create-schema.json",
       "tools": "c255470e.create-tools.json"
     }
   ]

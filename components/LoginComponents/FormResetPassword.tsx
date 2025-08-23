@@ -25,7 +25,7 @@ export const FormResetPassword = ({ token }: { token: string }) => {
 
   // Valores por defecto del formulario
   const form = useForm<z.infer<typeof resetPasswordSchema>>({
-    resolver: zodResolver(resetPasswordSchema as any),
+    resolver: zodResolver(resetPasswordSchema),
     defaultValues: {
       token: token,
       password: "",

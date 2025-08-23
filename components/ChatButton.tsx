@@ -14,8 +14,9 @@ import { useGlobalContext } from "@/provider/GlobalContext";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "./ui/button";
+import { Chat } from "@prisma/client";
 
-export const ChatButton = ({ chat }: { chat: any }) => {
+export const ChatButton = ({ chat }: { chat: Chat }) => {
   const pathname = usePathname();
   const router = useRouter();
   const { handleSaveTitle, handleDeleteChat } = useGlobalContext();
@@ -44,7 +45,7 @@ export const ChatButton = ({ chat }: { chat: any }) => {
   };
 
   const handleSave = async () => {
-    if (title.trim() === "" || title === chat.title) {
+    if (title!.trim() === "" || title === chat.title) {
       setIsEditing(false);
       setTitle(chat.title);
       return;
@@ -74,7 +75,7 @@ export const ChatButton = ({ chat }: { chat: any }) => {
       {isEditing ? (
         <input
           className="w-full px-3 py-2 text-sm rounded-md border bg-background focus:outline-none"
-          value={title}
+          value={title!}
           onChange={(e) => setTitle(e.target.value)}
           onBlur={handleSave}
           onKeyDown={(e) => {

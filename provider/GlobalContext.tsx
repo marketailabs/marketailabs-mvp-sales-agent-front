@@ -161,9 +161,7 @@ export const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
       const user = await getSanityUserAction(session?.user?.email!);
 
       // 1) Chequear si es free plan
-      const FREE_PLAN_ID =
-        process.env.NEXT_PUBLIC_FREE_PLAN_ID ||
-        "9080a077-b426-478d-9e08-1eeb5fe9ca07";
+      const FREE_PLAN_ID = process.env.NEXT_PUBLIC_FREE_PLAN_ID;
       const isFreePlan = user?.plan?._id === FREE_PLAN_ID;
 
       if (isFreePlan && needsReset(user.lastCreditsReset)) {
@@ -193,6 +191,9 @@ export const GlobalProvider = ({ children }: { children: React.ReactNode }) => {
   // Obtener los planes de pago
   const getPaymentsPlan = async () => {
     const response = await getPrices();
+
+    console.log(response);
+
     setPaymentsPlan(response as unknown as PaymentsPlan[]);
   };
 

@@ -50,7 +50,7 @@ export const FormSend = ({ formSanity, formOption }: FormSendProps) => {
   };
 
   const form = useForm<MessageSchemaType>({
-    resolver: zodResolver(messageSchema) as any,
+    resolver: zodResolver(messageSchema),
     defaultValues: defaultValues,
   });
 
