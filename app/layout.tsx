@@ -3,9 +3,7 @@ import { Work_Sans, Inter } from "next/font/google";
 import type { Metadata } from "next";
 
 import "./globals.css";
-import { draftMode } from "next/headers";
-import { VisualEditing } from "next-sanity";
-import { DisableDraftMode } from "@/components/DisableDraftMode";
+
 import { ThemeProvider } from "@/components/ui/theme-provider";
 import { SessionProvider } from "next-auth/react";
 
@@ -35,12 +33,6 @@ export default async function RootLayout({
   return (
     <html lang="es" suppressHydrationWarning>
       <body className={`${workSans.variable} ${inter.variable} antialiased`}>
-        {(await draftMode()).isEnabled && (
-          <>
-            <DisableDraftMode />
-            <VisualEditing />
-          </>
-        )}
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

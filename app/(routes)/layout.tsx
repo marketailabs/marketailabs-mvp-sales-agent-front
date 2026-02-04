@@ -4,8 +4,11 @@ import { Sidebar } from "@/components/layout/Sidebar";
 import { Toaster } from "@/components/ui/sonner";
 import { GlobalProvider } from "@/provider/GlobalContext";
 import { SanityLive } from "@/sanity/lib/live";
+import { draftMode } from "next/headers";
+import { VisualEditing } from "next-sanity/visual-editing";
+import { DisableDraftMode } from "@/components/DisableDraftMode";
 
-const HomeLayout = ({ children }: { children: React.ReactNode }) => {
+const HomeLayout = async ({ children }: { children: React.ReactNode }) => {
   return (
     <GlobalProvider>
       <div className="flex min-h-screen flex-col md:flex-row">
@@ -22,6 +25,13 @@ const HomeLayout = ({ children }: { children: React.ReactNode }) => {
 
       <SanityLive />
       <Toaster />
+
+      {(await draftMode()).isEnabled && (
+        <>
+          <DisableDraftMode />
+          <VisualEditing />
+        </>
+      )}
     </GlobalProvider>
   );
 };

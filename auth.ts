@@ -9,7 +9,7 @@ import authConfig from "@/auth.config";
 import NextAuth from "next-auth";
 
 import { PrismaAdapter } from "@auth/prisma-adapter";
-import { prisma } from "@/lib/prisma";
+import prisma from "@/lib/prisma";
 
 // Configuración de NextAuth
 export const { handlers, signIn, signOut, auth } = NextAuth({

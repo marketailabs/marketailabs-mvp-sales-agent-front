@@ -7,7 +7,7 @@ import {
 import normalizarGemini from "@/config/normalizarGemini";
 import { subtractUserCredit } from "@/sanity/lib/User/UserCredits";
 import { auth } from "@/auth";
-import { prisma } from "@/lib/prisma";
+import prisma from "@/lib/prisma";
 
 export async function sendMessage(
   data: MessageSchemaType,
@@ -17,7 +17,7 @@ export async function sendMessage(
     email: string;
     token: string;
     _id: string;
-  }
+  },
 ) {
   // 1) Verificar que el usuario esté autenticado
   const session = await auth();
@@ -33,7 +33,7 @@ export async function sendMessage(
   const result = messageSchema.safeParse(data);
   if (!result.success) {
     throw new Error(
-      Object.values(result.error.flatten().fieldErrors).flat().join(", ")
+      Object.values(result.error.flatten().fieldErrors).flat().join(", "),
     );
   }
 
@@ -64,7 +64,7 @@ export async function sendMessage(
       const errorData = await analyzeRes.json().catch(() => ({}));
       throw new Error(
         errorData.message ||
-          `Error en el servicio externo: ${analyzeRes.statusText}`
+          `Error en el servicio externo: ${analyzeRes.statusText}`,
       );
     }
 
@@ -93,7 +93,7 @@ export async function sendMessage(
     throw new Error(
       error instanceof Error
         ? error.message
-        : "Ocurrió un error al procesar tu solicitud"
+        : "Ocurrió un error al procesar tu solicitud",
     );
   }
 }

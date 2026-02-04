@@ -2,7 +2,7 @@ import NextAuth from "next-auth";
 import authConfig from "./auth.config";
 import { NextResponse } from "next/server";
 
-const { auth: middleware } = NextAuth(authConfig);
+const { auth: proxy } = NextAuth(authConfig);
 
 // Rutas públicas
 const publicRouter = [
@@ -22,7 +22,7 @@ const publicRouter = [
 ];
 
 // Rutas privadas
-export default middleware((req) => {
+export default proxy((req) => {
   const { nextUrl, auth } = req;
 
   const isLoggedIn = !!auth?.user;

@@ -9,7 +9,7 @@ import bcrypt from "bcryptjs";
 
 import type { NextAuthConfig } from "next-auth";
 import { loginSchema } from "@/lib/zodSchemas/authSchema";
-import { prisma } from "@/lib/prisma";
+import prisma from "@/lib/prisma";
 import { createSanityUser } from "@/sanity/lib/User/createSanityUser";
 
 export default {

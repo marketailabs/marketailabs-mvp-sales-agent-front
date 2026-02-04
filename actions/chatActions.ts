@@ -4,13 +4,13 @@ import { auth } from "@/auth";
 import { ApiResponse, ChatMessageJson } from "@/types/chatTypes";
 import { chatSchema, ChatSchemaType } from "@/lib/zodSchemas/chatSchema";
 import chatGemini from "@/config/chatGemini";
-import { prisma } from "@/lib/prisma";
+import prisma from "@/lib/prisma";
 import chatGpt from "@/config/chatGpt";
 
 export async function chatAction2(
   data: ChatSchemaType,
   apiResponse: ApiResponse,
-  chatId: string
+  chatId: string,
 ) {
   try {
     // 1) Verificar que el usuario esté autenticado
@@ -32,7 +32,7 @@ export async function chatAction2(
     const result = chatSchema.safeParse(data);
     if (!result.success) {
       throw new Error(
-        Object.values(result.error.flatten().fieldErrors).flat().join(", ")
+        Object.values(result.error.flatten().fieldErrors).flat().join(", "),
       );
     }
 
@@ -72,7 +72,7 @@ export async function chatAction2(
     throw new Error(
       error instanceof Error
         ? error.message
-        : "Ocurrió un error al procesar tu solicitud"
+        : "Ocurrió un error al procesar tu solicitud",
     );
   }
 }
@@ -80,7 +80,7 @@ export async function chatAction2(
 export async function chatAction(
   data: ChatSchemaType,
   apiResponse: ApiResponse,
-  chatId: string
+  chatId: string,
 ) {
   try {
     // 1) Verificar que el usuario esté autenticado
@@ -110,7 +110,7 @@ export async function chatAction(
     const result = chatSchema.safeParse(data);
     if (!result.success) {
       throw new Error(
-        Object.values(result.error.flatten().fieldErrors).flat().join(", ")
+        Object.values(result.error.flatten().fieldErrors).flat().join(", "),
       );
     }
 
@@ -150,7 +150,7 @@ export async function chatAction(
     throw new Error(
       error instanceof Error
         ? error.message
-        : "Ocurrió un error al procesar tu solicitud"
+        : "Ocurrió un error al procesar tu solicitud",
     );
   }
 }

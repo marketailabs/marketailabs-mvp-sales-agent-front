@@ -1,12 +1,11 @@
-/// Configuración de la base de datos
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
-
-/// Generador de código para el cliente de Prisma
 generator client {
   provider = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
+  runtime  = "vercel-edge"
+}
+
+datasource db {
+  provider = "postgresql"
 }
 
 /// Modelos para el usuario 

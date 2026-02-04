@@ -2,7 +2,7 @@
 
 import { auth } from "@/auth";
 import { getSanityUser } from "@/sanity/lib/User/UserCredits";
-import { prisma } from "@/lib/prisma";
+import prisma from "@/lib/prisma";
 
 export async function getSanityUserAction(email: string) {
   try {
