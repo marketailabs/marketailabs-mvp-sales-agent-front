@@ -4,7 +4,7 @@ import {
   messageSchema,
   type MessageSchemaType,
 } from "@/lib/zodSchemas/formAnalizeSchema";
-import normalizarGemini from "@/config/normalizarGemini";
+import { normalizar } from "@/config/normalizar"; // Unified import
 import { subtractUserCredit } from "@/sanity/lib/User/UserCredits";
 import { auth } from "@/auth";
 import prisma from "@/lib/prisma";
@@ -46,9 +46,14 @@ export async function sendMessage(
   }
 
   try {
-    // 4) Normalizar o Realizar una redacción de cliente con Gemini
+    // 4) Normalizar o Realizar una redacción de cliente con Gemini (ahora unificado/Groq)
     const prompt = `${mensaje}`;
-    const textoEntregado = await normalizarGemini(prompt, 2, configOption);
+    const textoEntregado = await normalizar({
+      provider: "groq", // Using Groq as per user request
+      texto: prompt,
+      configOption: configOption,
+      retries: 2,
+    });
 
     // 5) Enviar al backend con texto limpio
     const analyzeRes = await fetch(`${process.env.API_URL}/analyze`, {

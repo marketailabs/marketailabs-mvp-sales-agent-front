@@ -6,6 +6,7 @@ import "./globals.css";
 
 import { ThemeProvider } from "@/components/ui/theme-provider";
 import { SessionProvider } from "next-auth/react";
+import { auth } from "@/auth";
 
 const workSans = Work_Sans({
   variable: "--font-work-sans",
@@ -30,6 +31,7 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const session = await auth();
   return (
     <html lang="es" suppressHydrationWarning>
       <body className={`${workSans.variable} ${inter.variable} antialiased`}>
@@ -39,7 +41,9 @@ export default async function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <SessionProvider>{children}</SessionProvider>
+          <SessionProvider session={session} refetchOnWindowFocus={false}>
+            {children}
+          </SessionProvider>
         </ThemeProvider>
       </body>
     </html>

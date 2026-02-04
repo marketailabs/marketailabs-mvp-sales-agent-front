@@ -1,14 +1,13 @@
 import { MainContainer } from "@/components/layout/MainContainer";
 import LegalTabs from "@/components/LegalSections";
-import { getLegalInfo } from "@/sanity/lib/Legal/getLegalInfo";
+import { legalInfoQuery } from "@/sanity/lib/Legal/getLegalInfo";
+import { sanityFetch } from "@/sanity/lib/live";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 3600;
 
 export default async function Page() {
-  const LegalInfoArray = await getLegalInfo();
-
-  console.log(LegalInfoArray);
+  const { data: LegalInfoArray } = await sanityFetch({ query: legalInfoQuery });
 
   return (
     <MainContainer className="pt-16 md:pt-24 px-4">

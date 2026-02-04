@@ -1,8 +1,8 @@
-import { client } from "../client";
+import { adminClient } from "../adminClient";
 
 // Restar creditos pomr consulta
 export async function subtractUserCredit(userId: string) {
-  const updatedUser = await client
+  const updatedUser = await adminClient
     .patch(userId)
     .dec({ credits: 1 })
     .commit({ autoGenerateArrayKeys: true });
@@ -12,7 +12,7 @@ export async function subtractUserCredit(userId: string) {
 
 // Obtener los créditos del usuario y datos del plan
 export async function getSanityUser(email: string) {
-  const user = await client.fetch(
+  const user = await adminClient.fetch(
     `*[_type == "user" && email == $email][0]{
       _id,
       fullName,
@@ -28,7 +28,7 @@ export async function getSanityUser(email: string) {
       subscriptionStatus,
       appliedInvoiceIds
     }`,
-    { email }
+    { email },
   );
   return user;
 }
@@ -37,7 +37,7 @@ export async function getSanityUser(email: string) {
  * Obtener usuario por _id (útil en webhooks donde tenés userId)
  */
 export async function getSanityUserById(id: string) {
-  const user = await client.fetch(
+  const user = await adminClient.fetch(
     `*[_type == "user" && _id == $id][0]{
       _id,
       fullName,
@@ -53,7 +53,7 @@ export async function getSanityUserById(id: string) {
       subscriptionStatus,
       appliedInvoiceIds
     }`,
-    { id }
+    { id },
   );
   return user;
 }
@@ -63,9 +63,9 @@ export async function getSanityUserById(id: string) {
  */
 export async function getUserByCustomerId(customerId: string) {
   if (!customerId) return null;
-  const user = await client.fetch(
+  const user = await adminClient.fetch(
     `*[_type == "user" && customerId == $customerId][0]{_id, email, customerId, subscriptionId, appliedInvoiceIds, applyingFreePlan, changePlan}`,
-    { customerId }
+    { customerId },
   );
   return user || null;
 }

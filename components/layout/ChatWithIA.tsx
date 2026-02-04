@@ -16,7 +16,7 @@ import { SpeechToText } from "../speechToText";
 import { chatSchema, ChatSchemaType } from "@/lib/zodSchemas/chatSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ApiResponse, ChatType } from "@/types/chatTypes";
-import { chatAction2, fetchChatMessages } from "@/actions/chatActions";
+import { chatAction, fetchChatMessages } from "@/actions/chatActions";
 import { toast } from "sonner";
 import { useGlobalContext } from "@/provider/GlobalContext";
 import { useChatScroll } from "@/hook/use-chat-scroll";
@@ -48,8 +48,8 @@ export const ChatWithIA = ({
           (message: { role: "user" | "IA"; content: string }) => ({
             role: message.role === "user" ? "user" : "IA",
             content: message.content,
-          })
-        )
+          }),
+        ),
       );
       setMessagesLoaded(true); // marcamos que terminó de cargar
     };
@@ -85,10 +85,10 @@ export const ChatWithIA = ({
 
     startTransition(async () => {
       try {
-        const result = await chatAction2(
+        const result = await chatAction(
           values,
           chat.apiResponse as ApiResponse,
-          chatId
+          chatId,
         );
 
         // Agregamos mensaje de la IA
@@ -179,7 +179,7 @@ export const ChatWithIA = ({
                         disabled={isPending}
                         className={cn(
                           "text-sm rounded-full pr-32",
-                          isListening && "animate-pulse"
+                          isListening && "animate-pulse",
                         )}
                         placeholder="Escribe tu mensaje"
                         {...field}
@@ -193,7 +193,7 @@ export const ChatWithIA = ({
                         form.setValue(
                           "mensaje",
                           `${form.watch("mensaje")} ${spokenText}`,
-                          { shouldValidate: true }
+                          { shouldValidate: true },
                         )
                       }
                     />

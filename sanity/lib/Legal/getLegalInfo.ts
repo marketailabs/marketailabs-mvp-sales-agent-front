@@ -1,8 +1,6 @@
-import { sanityFetch } from "../live";
-import { defineQuery } from "groq";
+import groq from "groq";
 
-export async function getLegalInfo() {
-  const getLegalInfoQuery = defineQuery(`
+export const legalInfoQuery = groq`
   *[_type == "legalSection"] | order(effectiveDate desc) {
     _id,
     tabName,
@@ -13,8 +11,4 @@ export async function getLegalInfo() {
       content
     }
   }
-`);
-
-  const legalInfoData = await sanityFetch({ query: getLegalInfoQuery });
-  return legalInfoData.data;
-}
+`;

@@ -1,15 +1,15 @@
-import { client } from "../client";
+import { adminClient } from "../adminClient";
 
 function generateToken() {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   const nums = "0123456789";
   const randomPart1 = Array.from(
     { length: 3 },
-    () => chars[Math.floor(Math.random() * chars.length)]
+    () => chars[Math.floor(Math.random() * chars.length)],
   ).join("");
   const randomPart2 = Array.from(
     { length: 3 },
-    () => nums[Math.floor(Math.random() * nums.length)]
+    () => nums[Math.floor(Math.random() * nums.length)],
   ).join("");
   return `${randomPart1}${randomPart2}`;
 }
@@ -25,9 +25,9 @@ export async function createSanityUser(user: {
   if (!user.email) return { success: false, message: "Email requerido" };
 
   // 1) comprobar si ya existe
-  const existing = await client.fetch(
+  const existing = await adminClient.fetch(
     `*[_type == "user" && email == $email][0]`,
-    { email: user.email }
+    { email: user.email },
   );
 
   if (existing) {
@@ -40,9 +40,9 @@ export async function createSanityUser(user: {
   }
 
   // 2) obtener datos del plan gratuito (para tomar los créditos si querés)
-  const freePlan = await client.fetch(
+  const freePlan = await adminClient.fetch(
     `*[_type == "plansPayment" && _id == $id][0]{_id, name, credits, price, typeOfPlan, benefits}`,
-    { id: FREE_PLAN_ID }
+    { id: FREE_PLAN_ID },
   );
 
   const creditsFromPlan =
@@ -65,7 +65,7 @@ export async function createSanityUser(user: {
   };
 
   try {
-    const created = await client.create(doc);
+    const created = await adminClient.create(doc);
     return { success: true, message: "Usuario creado", userId: created._id };
   } catch (error) {
     console.error("Error creando usuario en Sanity:", error);

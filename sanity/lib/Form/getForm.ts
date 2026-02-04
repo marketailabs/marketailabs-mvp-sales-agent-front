@@ -1,8 +1,7 @@
 import { sanityFetch } from "../live";
-import { defineQuery } from "groq";
+import groq, { defineQuery } from "groq";
 
-export async function getForms() {
-  const getFormsQuery = defineQuery(`*[_type == "form"]{
+export const formQuery = groq`*[_type == "form"]{
   _id,
   name,
   "fields": fields[]->{
@@ -14,8 +13,4 @@ export async function getForms() {
     validacion
     // Agrega aquí cualquier otro campo que tengas en tu inputType
   }
-}`);
-
-  const forms = await sanityFetch({ query: getFormsQuery });
-  return forms.data;
-}
+}`;

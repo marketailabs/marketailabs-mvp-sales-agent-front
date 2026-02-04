@@ -1,10 +1,10 @@
-import { client } from "@/sanity/lib/client";
+import { adminClient } from "@/sanity/lib/adminClient";
 
 export async function POST(req: Request) {
   const { userId, planCredits } = await req.json();
 
   try {
-    const patch = await client
+    const patch = await adminClient
       .patch(userId)
       .set({
         credits: planCredits,

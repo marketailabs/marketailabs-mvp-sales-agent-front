@@ -1,4 +1,4 @@
-import { client } from "../client";
+import { adminClient } from "../adminClient";
 import { sanityFetch } from "../live";
 import { defineQuery } from "groq";
 
@@ -24,9 +24,9 @@ export async function getPaymentsPlan() {
 // Buscar el plan por id
 export async function getPaymentsPlanById(id: string | null) {
   if (!id) return null;
-  const plan = await client.fetch(
+  const plan = await adminClient.fetch(
     `*[_type == "plansPayment" && _id == $id][0]{_id, name, price, credits, price_id}`,
-    { id }
+    { id },
   );
   return plan;
 }
@@ -36,9 +36,9 @@ export async function getPaymentsPlanById(id: string | null) {
  */
 export async function getPaymentsPlanByProductId(productId: string | null) {
   if (!productId) return null;
-  const plan = await client.fetch(
+  const plan = await adminClient.fetch(
     `*[_type == "plansPayment" && price_id == $productId][0]{_id, name, price, credits, price_id}`,
-    { productId }
+    { productId },
   );
   return plan;
 }
@@ -62,7 +62,7 @@ export async function assignPlanToUser(
     invoiceId?: string | null;
     setCreditsFromPlan?: boolean;
     customerId?: string | null;
-  }
+  },
 ) {
   const {
     subscriptionId = null,
@@ -76,13 +76,15 @@ export async function assignPlanToUser(
   // Traer plan si hace falta setear credits
   let planDoc: { _id: string; credits: number } | null = null;
   if (planId && setCreditsFromPlan) {
-    planDoc = await client.fetch(
+    planDoc = await adminClient.fetch(
       `*[_type == "plansPayment" && _id == $id][0]{_id, credits}`,
-      { id: planId }
+      { id: planId },
     );
   }
 
-  const patch = client.patch(userId).setIfMissing({ appliedInvoiceIds: [] });
+  const patch = adminClient
+    .patch(userId)
+    .setIfMissing({ appliedInvoiceIds: [] });
 
   // referencia al plan
   if (planId) {
@@ -117,12 +119,12 @@ export async function assignFreePlanToUser(userId: string) {
   const freePlanId = process.env.NEXT_PUBLIC_FREE_PLAN_ID;
   if (!freePlanId) return null;
 
-  const freePlanDoc = await client.fetch(
+  const freePlanDoc = await adminClient.fetch(
     `*[_type == "plansPayment" && _id == $id][0]{_id, credits}`,
-    { id: freePlanId }
+    { id: freePlanId },
   );
 
-  const patch = client.patch(userId).set({
+  const patch = adminClient.patch(userId).set({
     plan: { _type: "reference", _ref: freePlanId },
     credits: freePlanDoc?.credits ?? 0,
     appliedInvoiceIds: [],
@@ -151,7 +153,7 @@ export async function setApplyingFreePlan(userId: string, value: boolean) {
   }
 
   try {
-    const updatedUser = await client
+    const updatedUser = await adminClient
       .patch(userId)
       .set({ applyingFreePlan: value })
       .commit({ autoGenerateArrayKeys: true });
@@ -175,7 +177,7 @@ export async function setApplyingChangePlan(userId: string, value: boolean) {
   }
 
   try {
-    const updatedUser = await client
+    const updatedUser = await adminClient
       .patch(userId)
       .set({ changePlan: value })
       .commit({ autoGenerateArrayKeys: true });

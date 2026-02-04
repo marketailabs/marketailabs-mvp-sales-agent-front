@@ -70,6 +70,13 @@ export type Intro = {
   parrafo2?: string;
 };
 
+export type InputReference = {
+  _ref: string;
+  _type: "reference";
+  _weak?: boolean;
+  [internalGroqTypeReferenceTo]?: "input";
+};
+
 export type Form = {
   _id: string;
   _type: "form";
@@ -77,13 +84,18 @@ export type Form = {
   _updatedAt: string;
   _rev: string;
   name?: string;
-  fields?: Array<{
-    _ref: string;
-    _type: "reference";
-    _weak?: boolean;
-    _key: string;
-    [internalGroqTypeReferenceTo]?: "input";
-  }>;
+  fields?: Array<
+    {
+      _key: string;
+    } & InputReference
+  >;
+};
+
+export type PlansPaymentReference = {
+  _ref: string;
+  _type: "reference";
+  _weak?: boolean;
+  [internalGroqTypeReferenceTo]?: "plansPayment";
 };
 
 export type User = {
@@ -96,12 +108,7 @@ export type User = {
   email?: string;
   token?: Slug;
   credits?: number;
-  plan?: {
-    _ref: string;
-    _type: "reference";
-    _weak?: boolean;
-    [internalGroqTypeReferenceTo]?: "plansPayment";
-  };
+  plan?: PlansPaymentReference;
   lastCreditsReset?: string;
   applyingFreePlan?: boolean;
   changePlan?: boolean;
@@ -125,6 +132,12 @@ export type PlansPayment = {
   price_id?: string;
   benefits?: Array<string>;
   credits?: number;
+};
+
+export type Slug = {
+  _type: "slug";
+  current?: string;
+  source?: string;
 };
 
 export type SanityImagePaletteSwatch = {
@@ -151,6 +164,18 @@ export type SanityImageDimensions = {
   height?: number;
   width?: number;
   aspectRatio?: number;
+};
+
+export type SanityImageMetadata = {
+  _type: "sanity.imageMetadata";
+  location?: Geopoint;
+  dimensions?: SanityImageDimensions;
+  palette?: SanityImagePalette;
+  lqip?: string;
+  blurHash?: string;
+  thumbHash?: string;
+  hasAlpha?: boolean;
+  isOpaque?: boolean;
 };
 
 export type SanityImageHotspot = {
@@ -191,6 +216,13 @@ export type SanityFileAsset = {
   source?: SanityAssetSourceData;
 };
 
+export type SanityAssetSourceData = {
+  _type: "sanity.assetSourceData";
+  name?: string;
+  id?: string;
+  url?: string;
+};
+
 export type SanityImageAsset = {
   _id: string;
   _type: "sanity.imageAsset";
@@ -214,17 +246,6 @@ export type SanityImageAsset = {
   source?: SanityAssetSourceData;
 };
 
-export type SanityImageMetadata = {
-  _type: "sanity.imageMetadata";
-  location?: Geopoint;
-  dimensions?: SanityImageDimensions;
-  palette?: SanityImagePalette;
-  lqip?: string;
-  blurHash?: string;
-  hasAlpha?: boolean;
-  isOpaque?: boolean;
-};
-
 export type Geopoint = {
   _type: "geopoint";
   lat?: number;
@@ -232,25 +253,39 @@ export type Geopoint = {
   alt?: number;
 };
 
-export type Slug = {
-  _type: "slug";
-  current?: string;
-  source?: string;
-};
+export type AllSanitySchemaTypes =
+  | LegalSection
+  | Input
+  | Intro
+  | InputReference
+  | Form
+  | PlansPaymentReference
+  | User
+  | PlansPayment
+  | Slug
+  | SanityImagePaletteSwatch
+  | SanityImagePalette
+  | SanityImageDimensions
+  | SanityImageMetadata
+  | SanityImageHotspot
+  | SanityImageCrop
+  | SanityFileAsset
+  | SanityAssetSourceData
+  | SanityImageAsset
+  | Geopoint;
 
-export type SanityAssetSourceData = {
-  _type: "sanity.assetSourceData";
-  name?: string;
-  id?: string;
-  url?: string;
-};
-
-export type AllSanitySchemaTypes = LegalSection | Input | Intro | Form | User | PlansPayment | SanityImagePaletteSwatch | SanityImagePalette | SanityImageDimensions | SanityImageHotspot | SanityImageCrop | SanityFileAsset | SanityImageAsset | SanityImageMetadata | Geopoint | Slug | SanityAssetSourceData;
 export declare const internalGroqTypeReferenceTo: unique symbol;
-// Source: ./sanity/lib/Form/getForm.ts
-// Variable: getFormsQuery
+
+type ArrayOf<T> = Array<
+  T & {
+    _key: string;
+  }
+>;
+
+// Source: sanity\lib\Form\getForm.ts
+// Variable: formQuery
 // Query: *[_type == "form"]{  _id,  name,  "fields": fields[]->{    _id,    name,    titulo,    placeholder,    tipo,    validacion    // Agrega aquí cualquier otro campo que tengas en tu inputType  }}
-export type GetFormsQueryResult = Array<{
+export type FormQueryResult = Array<{
   _id: string;
   name: string | null;
   fields: Array<{
@@ -263,20 +298,20 @@ export type GetFormsQueryResult = Array<{
   }> | null;
 }>;
 
-// Source: ./sanity/lib/Intro/getIntro.ts
-// Variable: getIntroQuery
-// Query: *[_type == "intro"] | order(_createdAt asc){      _id,      title,      parrafo1,      parrafo2    }
-export type GetIntroQueryResult = Array<{
+// Source: sanity\lib\Intro\getIntro.ts
+// Variable: introQuery
+// Query: *[_type == "intro"] | order(_createdAt asc){  _id,  title,  parrafo1,  parrafo2}
+export type IntroQueryResult = Array<{
   _id: string;
   title: string | null;
   parrafo1: string | null;
   parrafo2: string | null;
 }>;
 
-// Source: ./sanity/lib/Legal/getLegalInfo.ts
-// Variable: getLegalInfoQuery
+// Source: sanity\lib\Legal\getLegalInfo.ts
+// Variable: legalInfoQuery
 // Query: *[_type == "legalSection"] | order(effectiveDate desc) {    _id,    tabName,    title,    effectiveDate,    sections[]{      heading,      content    }  }
-export type GetLegalInfoQueryResult = Array<{
+export type LegalInfoQueryResult = Array<{
   _id: string;
   tabName: string | null;
   title: string | null;
@@ -304,7 +339,7 @@ export type GetLegalInfoQueryResult = Array<{
   }> | null;
 }>;
 
-// Source: ./sanity/lib/Payments/getPaymentsPlan.ts
+// Source: sanity\lib\Payments\getPaymentsPlan.ts
 // Variable: getPaymentsPlanQuery
 // Query: *[_type == "plansPayment"] | order(_createdAt asc){      _id,      name,      price,      description,      typeOfPlan,      benefits,      credits,      price_id,    }
 export type GetPaymentsPlanQueryResult = Array<{
@@ -318,7 +353,7 @@ export type GetPaymentsPlanQueryResult = Array<{
   price_id: string | null;
 }>;
 
-// Source: ./sanity/lib/User/getUserByEmail.ts
+// Source: sanity\lib\User\getUserByEmail.ts
 // Variable: getUserByEmailQuery
 // Query: *[_type == "user" && email == $email][0]
 export type GetUserByEmailQueryResult = {
@@ -331,12 +366,7 @@ export type GetUserByEmailQueryResult = {
   email?: string;
   token?: Slug;
   credits?: number;
-  plan?: {
-    _ref: string;
-    _type: "reference";
-    _weak?: boolean;
-    [internalGroqTypeReferenceTo]?: "plansPayment";
-  };
+  plan?: PlansPaymentReference;
   lastCreditsReset?: string;
   applyingFreePlan?: boolean;
   changePlan?: boolean;
@@ -351,10 +381,10 @@ export type GetUserByEmailQueryResult = {
 import "@sanity/client";
 declare module "@sanity/client" {
   interface SanityQueries {
-    "*[_type == \"form\"]{\n  _id,\n  name,\n  \"fields\": fields[]->{\n    _id,\n    name,\n    titulo,\n    placeholder,\n    tipo,\n    validacion\n    // Agrega aqu\xED cualquier otro campo que tengas en tu inputType\n  }\n}": GetFormsQueryResult;
-    "*[_type == \"intro\"] | order(_createdAt asc){\n      _id,\n      title,\n      parrafo1,\n      parrafo2\n    }": GetIntroQueryResult;
-    "\n  *[_type == \"legalSection\"] | order(effectiveDate desc) {\n    _id,\n    tabName,\n    title,\n    effectiveDate,\n    sections[]{\n      heading,\n      content\n    }\n  }\n": GetLegalInfoQueryResult;
-    "\n    *[_type == \"plansPayment\"] | order(_createdAt asc){\n      _id,\n      name,\n      price,\n      description,\n      typeOfPlan,\n      benefits,\n      credits,\n      price_id,\n    }\n  ": GetPaymentsPlanQueryResult;
-    "*[_type == \"user\" && email == $email][0]": GetUserByEmailQueryResult;
+    '*[_type == "form"]{\n  _id,\n  name,\n  "fields": fields[]->{\n    _id,\n    name,\n    titulo,\n    placeholder,\n    tipo,\n    validacion\n    // Agrega aqu\xED cualquier otro campo que tengas en tu inputType\n  }\n}': FormQueryResult;
+    '*[_type == "intro"] | order(_createdAt asc){\n  _id,\n  title,\n  parrafo1,\n  parrafo2\n}': IntroQueryResult;
+    '\n  *[_type == "legalSection"] | order(effectiveDate desc) {\n    _id,\n    tabName,\n    title,\n    effectiveDate,\n    sections[]{\n      heading,\n      content\n    }\n  }\n': LegalInfoQueryResult;
+    '\n    *[_type == "plansPayment"] | order(_createdAt asc){\n      _id,\n      name,\n      price,\n      description,\n      typeOfPlan,\n      benefits,\n      credits,\n      price_id,\n    }\n  ': GetPaymentsPlanQueryResult;
+    '*[_type == "user" && email == $email][0]': GetUserByEmailQueryResult;
   }
 }

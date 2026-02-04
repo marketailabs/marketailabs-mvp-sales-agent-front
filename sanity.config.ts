@@ -19,20 +19,24 @@ export default defineConfig({
   projectId,
   dataset,
   name: "market-ai-labs-studio",
+  subtitle: "Administrador de contenido",
   // Add and edit the content schema in the './sanity/schemaTypes' folder
   schema,
   plugins: [
     structureTool({ structure }),
+    presentationTool({
+      previewUrl: {
+        initial: process.env.SANITY_STUDIO_PREVIEW_ORIGIN,
+        previewMode: {
+          enable: "/api/draft-mode/enable",
+          disable: "/api/draft-mode/disable",
+        },
+      },
+      allowOrigins: ["http://localhost:*"],
+    }),
     // Vision is for querying with GROQ from inside the Studio
     // https://www.sanity.io/docs/the-vision-plugin
     visionTool({ defaultApiVersion: apiVersion }),
-    presentationTool({
-      previewUrl: {
-        previewMode: {
-          enable: "/api/draft-mode/enable",
-        },
-      },
-    }),
   ],
   beta: {
     create: {
