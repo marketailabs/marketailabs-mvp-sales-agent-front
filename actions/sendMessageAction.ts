@@ -56,9 +56,16 @@ export async function sendMessage(
     });
 
     // 5) Enviar al backend con texto limpio
-    const analyzeRes = await fetch(`${process.env.API_URL}/analyze`, {
+    const analyzeRes = await fetch(`${process.env.API_URL}/api/analyze`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "x-client-api": "Prospector AI",
+        Authorization: `Basic ${Buffer.from(
+          `${process.env.BASIC_AUTH_USER}:${process.env.BASIC_AUTH_PASS}`,
+        ).toString("base64")}`,
+      },
+
       body: JSON.stringify({
         texto: textoEntregado,
         email: sanityUser.email.trim().toLowerCase(),

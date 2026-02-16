@@ -20,7 +20,7 @@ Profiler es una aplicación web que combina inteligencia artificial con análisi
 - **React 19** - Biblioteca de UI
 - **TypeScript** - Tipado estático
 - **Tailwind CSS 4** - Estilos utilitarios
-- **Radix UI** - Componentes accesibles
+- **Shadcn UI** - Componentes accesibles
 - **Lucide React** - Iconografía
 
 ### Backend & Base de Datos
@@ -32,7 +32,8 @@ Profiler es una aplicación web que combina inteligencia artificial con análisi
 
 ### IA & Procesamiento
 
-- **Google Gemini AI** - Modelo principal de IA
+- **GROQ AI** - Modelo principal de IA
+- **Google Gemini AI** - Modelo alternativo de IA
 - **OpenAI GPT** - Modelo alternativo de IA
 - **API Externa** - Servicio de análisis semántico
 
@@ -50,7 +51,7 @@ Profiler es una aplicación web que combina inteligencia artificial con análisi
 
 ### 1. Análisis de Perfiles con IA
 
-- Normalización de texto mediante Gemini
+- Normalización de texto mediante GROQ AI
 - Análisis semántico de información comercial
 - Extracción de insights y patrones de comportamiento
 - Generación automática de perfiles de cliente
@@ -59,7 +60,7 @@ Profiler es una aplicación web que combina inteligencia artificial con análisi
 
 - Conversaciones contextuales sobre análisis realizados
 - Historial de mensajes persistente
-- Respuestas generadas por IA (Gemini/GPT)
+- Respuestas generadas por IA (GROQ AI)
 - Edición de títulos de chat
 
 ### 3. Sistema de Créditos
